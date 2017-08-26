@@ -7,8 +7,6 @@ from misoc.cores.code_8b10b import Encoder, Decoder
 from drtio.gth_ultrascale_init import GTHInit
 from drtio.clock_aligner import BruteforceClockAligner
 
-from drtio.prbs import *
-
 
 class GTHChannelPLL(Module):
     def __init__(self, refclk, refclk_freq, linerate):
@@ -205,10 +203,6 @@ class GTH(Module, AutoCSR):
                  dw=20):
         assert (dw == 20) or (dw == 40)
         self.tx_produce_square_wave = CSRStorage()
-        self.tx_prbs_config = CSRStorage(2)
-
-        self.rx_prbs_config = CSRStorage(2)
-        self.rx_prbs_errors = CSRStatus(32)
 
         self.restart = CSR()
         self.ready = CSRStatus(2)
@@ -240,19 +234,9 @@ class GTH(Module, AutoCSR):
 
         # control/status cdc
         tx_produce_square_wave = Signal()
-        tx_prbs_config = Signal(2)
-
-        rx_prbs_config = Signal(2)
-        rx_prbs_errors = Signal(32)
-
+       
         self.specials += [
-            MultiReg(self.tx_produce_square_wave.storage, tx_produce_square_wave, "tx"),
-            MultiReg(self.tx_prbs_config.storage, tx_prbs_config, "tx"),
-        ]
-
-        self.specials += [
-            MultiReg(self.rx_prbs_config.storage, rx_prbs_config, "rx"),
-            MultiReg(rx_prbs_errors, self.rx_prbs_errors.status, "sys"), # FIXME
+            MultiReg(self.tx_produce_square_wave.storage, tx_produce_square_wave, "tx")
         ]
 
         # # #
@@ -438,28 +422,19 @@ class GTH(Module, AutoCSR):
             AsyncResetSynchronizer(self.cd_rx, rx_reset_deglitched)
         ]
 
-        # tx data and prbs
-        self.submodules.tx_prbs = ClockDomainsRenamer("tx")(PRBSTX(dw, True))
-        self.comb += self.tx_prbs.config.eq(tx_prbs_config)
+        # tx data
         self.comb += [
-            self.tx_prbs.i.eq(Cat(*[self.encoder.output[i] for i in range(nwords)])),
             If(tx_produce_square_wave,
                 # square wave @ linerate/20 for scope observation
                 txdata.eq((2**dw-1) & ~(2**(dw//2)-1))
             ).Else(
-                txdata.eq(self.tx_prbs.o)
+                txdata.eq(Cat(*[self.encoder.output[i] for i in range(nwords)]))
             )
         ]
 
-        # rx data and prbs
-        self.submodules.rx_prbs = ClockDomainsRenamer("rx")(PRBSRX(dw, True))
-        self.comb += [
-            self.rx_prbs.config.eq(rx_prbs_config),
-            rx_prbs_errors.eq(self.rx_prbs.errors)
-        ]
+        # rx data
         for i in range(nwords):
             self.comb += self.decoders[i].input.eq(rxdata[10*i:10*(i+1)])
-        self.comb += self.rx_prbs.i.eq(rxdata)
 
         # clock alignment
         if clock_aligner:
