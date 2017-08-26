@@ -15,7 +15,7 @@ from migen import *
 from misoc.interconnect import stream
 from misoc.interconnect import wishbone
 
-from amc_rtm_link.packet import *
+from serwb.packet import *
 
 
 class Packetizer(Module):

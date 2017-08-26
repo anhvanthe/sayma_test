@@ -17,10 +17,10 @@ from misoc.interconnect import stream
 
 from drtio.gth_ultrascale import GTHChannelPLL, GTHQuadPLL, MultiGTH
 
-from amc_rtm_link.kusphy import KUSSerdesPLL, KUSSerdes
-from amc_rtm_link.phy import SerdesMasterInit, SerdesControl
-from amc_rtm_link import packet
-from amc_rtm_link import etherbone
+from serwb.kusphy import KUSSerdesPLL, KUSSerdes
+from serwb.phy import SerdesMasterInit, SerdesControl
+from serwb import packet
+from serwb import etherbone
 
 
 _io = [
@@ -144,8 +144,8 @@ _io = [
         Subsignal("n", Pins("P5")),
     ),
 
-    # amc_rtm_link
-    ("amc_rtm_link", 0,
+    # serwb
+    ("serwb", 0,
         Subsignal("clk_p", Pins("J8")), # rtm_fpga_usr_io_p
         Subsignal("clk_n", Pins("H8")), # rtm_fpga_usr_io_n
         Subsignal("tx_p", Pins("A13")), # rtm_fpga_lvds1_p
@@ -313,9 +313,9 @@ class DRTIOTestSoC(SoCCore):
                 drtio_phy.gths[i].cd_rx.clk)
 
 
-class AMCRTMLinkTestSoC(SoCCore):
+class SERWBTestSoC(SoCCore):
     mem_map = {
-        "amc_rtm_link": 0x20000000,  # (default shadow @0xa0000000)
+        "serwb": 0x20000000,  # (default shadow @0xa0000000)
     }
     mem_map.update(SoCCore.mem_map)
 
@@ -325,9 +325,9 @@ class AMCRTMLinkTestSoC(SoCCore):
             integrated_rom_size=0x8000,
             integrated_sram_size=0x8000,
             integrated_main_ram_size=0x8000,
-            ident="Sayma AMC / AMC <--> RTM Link Test Design"
+            ident="Sayma AMC / AMC <--> RTM SERWB Link Test Design"
         )
-        self.csr_devices += ["amc_rtm_link_control"]
+        self.csr_devices += ["serwb_control"]
 
         self.submodules.crg = _CRG(platform)
         self.crg.cd_sys.clk.attr.add("keep")
@@ -341,65 +341,65 @@ class AMCRTMLinkTestSoC(SoCCore):
         ]
 
         # amc rtm link
-        amc_rtm_link_pll = KUSSerdesPLL(125e6, 1.25e9, vco_div=2)
-        self.comb += amc_rtm_link_pll.refclk.eq(ClockSignal())
-        self.submodules += amc_rtm_link_pll
+        serwb_pll = KUSSerdesPLL(125e6, 1.25e9, vco_div=2)
+        self.comb += serwb_pll.refclk.eq(ClockSignal())
+        self.submodules += serwb_pll
 
-        amc_rtm_link_pads = platform.request("amc_rtm_link")
-        amc_rtm_link_serdes = KUSSerdes(amc_rtm_link_pll, amc_rtm_link_pads, mode="master")
-        self.submodules.amc_rtm_link_serdes = amc_rtm_link_serdes
-        amc_rtm_link_init = SerdesMasterInit(amc_rtm_link_serdes, taps=512)
-        self.submodules.amc_rtm_link_init = amc_rtm_link_init
-        self.submodules.amc_rtm_link_control = SerdesControl(amc_rtm_link_init, mode="master")
+        serwb_pads = platform.request("serwb")
+        serwb_serdes = KUSSerdes(serwb_pll, serwb_pads, mode="master")
+        self.submodules.serwb_serdes = serwb_serdes
+        serwb_init = SerdesMasterInit(serwb_serdes, taps=512)
+        self.submodules.serwb_init = serwb_init
+        self.submodules.serwb_control = SerdesControl(serwb_init, mode="master")
 
-        amc_rtm_link_serdes.cd_serdes.clk.attr.add("keep")
-        amc_rtm_link_serdes.cd_serdes_20x.clk.attr.add("keep")
-        amc_rtm_link_serdes.cd_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(amc_rtm_link_serdes.cd_serdes.clk, 32.0),
-        platform.add_period_constraint(amc_rtm_link_serdes.cd_serdes_20x.clk, 1.6),
-        platform.add_period_constraint(amc_rtm_link_serdes.cd_serdes_5x.clk, 6.4)
+        serwb_serdes.cd_serdes.clk.attr.add("keep")
+        serwb_serdes.cd_serdes_20x.clk.attr.add("keep")
+        serwb_serdes.cd_serdes_5x.clk.attr.add("keep")
+        platform.add_period_constraint(serwb_serdes.cd_serdes.clk, 32.0),
+        platform.add_period_constraint(serwb_serdes.cd_serdes_20x.clk, 1.6),
+        platform.add_period_constraint(serwb_serdes.cd_serdes_5x.clk, 6.4)
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
-            amc_rtm_link_serdes.cd_serdes.clk,
-            amc_rtm_link_serdes.cd_serdes_5x.clk)
+            serwb_serdes.cd_serdes.clk,
+            serwb_serdes.cd_serdes_5x.clk)
 
 
         # wishbone slave
-        amc_rtm_link_depacketizer = packet.Depacketizer(clk_freq)
-        amc_rtm_link_packetizer = packet.Packetizer()
-        self.submodules += amc_rtm_link_depacketizer, amc_rtm_link_packetizer
-        amc_rtm_link_etherbone = etherbone.Etherbone(mode="slave")
-        self.submodules += amc_rtm_link_etherbone
-        amc_rtm_link_tx_cdc = stream.AsyncFIFO([("data", 32)], 8)
-        amc_rtm_link_tx_cdc = ClockDomainsRenamer({"write": "sys", "read": "serdes"})(amc_rtm_link_tx_cdc)
-        self.submodules += amc_rtm_link_tx_cdc
-        amc_rtm_link_rx_cdc = stream.AsyncFIFO([("data", 32)], 8)
-        amc_rtm_link_rx_cdc = ClockDomainsRenamer({"write": "serdes", "read": "sys"})(amc_rtm_link_rx_cdc)
-        self.submodules += amc_rtm_link_rx_cdc
+        serwb_depacketizer = packet.Depacketizer(clk_freq)
+        serwb_packetizer = packet.Packetizer()
+        self.submodules += serwb_depacketizer, serwb_packetizer
+        serwb_etherbone = etherbone.Etherbone(mode="slave")
+        self.submodules += serwb_etherbone
+        serwb_tx_cdc = stream.AsyncFIFO([("data", 32)], 8)
+        serwb_tx_cdc = ClockDomainsRenamer({"write": "sys", "read": "serdes"})(serwb_tx_cdc)
+        self.submodules += serwb_tx_cdc
+        serwb_rx_cdc = stream.AsyncFIFO([("data", 32)], 8)
+        serwb_rx_cdc = ClockDomainsRenamer({"write": "serdes", "read": "sys"})(serwb_rx_cdc)
+        self.submodules += serwb_rx_cdc
         self.comb += [
             # core <--> etherbone
-            amc_rtm_link_depacketizer.source.connect(amc_rtm_link_etherbone.sink),
-            amc_rtm_link_etherbone.source.connect(amc_rtm_link_packetizer.sink),
+            serwb_depacketizer.source.connect(serwb_etherbone.sink),
+            serwb_etherbone.source.connect(serwb_packetizer.sink),
             
             # core --> serdes
-            amc_rtm_link_packetizer.source.connect(amc_rtm_link_tx_cdc.sink),
-            If(amc_rtm_link_tx_cdc.source.stb & amc_rtm_link_init.ready,
-                amc_rtm_link_serdes.tx_data.eq(amc_rtm_link_tx_cdc.source.data)
+            serwb_packetizer.source.connect(serwb_tx_cdc.sink),
+            If(serwb_tx_cdc.source.stb & serwb_init.ready,
+                serwb_serdes.tx_data.eq(serwb_tx_cdc.source.data)
             ),
-            amc_rtm_link_tx_cdc.source.ack.eq(amc_rtm_link_init.ready),
+            serwb_tx_cdc.source.ack.eq(serwb_init.ready),
 
             # serdes --> core
-            amc_rtm_link_rx_cdc.sink.stb.eq(amc_rtm_link_init.ready),
-            amc_rtm_link_rx_cdc.sink.data.eq(amc_rtm_link_serdes.rx_data),
-            amc_rtm_link_rx_cdc.source.connect(amc_rtm_link_depacketizer.sink),
+            serwb_rx_cdc.sink.stb.eq(serwb_init.ready),
+            serwb_rx_cdc.sink.data.eq(serwb_serdes.rx_data),
+            serwb_rx_cdc.source.connect(serwb_depacketizer.sink),
         ]
-        self.add_wb_slave(self.mem_map["amc_rtm_link"], 8192, amc_rtm_link_etherbone.wishbone.bus)
+        self.add_wb_slave(self.mem_map["serwb"], 8192, serwb_etherbone.wishbone.bus)
 
 
 def main():
     platform = Platform()
     if len(sys.argv) < 2:
-        print("missing target (ddram or drtio or amc_rtm_link)")
+        print("missing target (ddram or drtio or serwb)")
         exit()
     if sys.argv[1] == "ddram":
         dw = "32"
@@ -408,8 +408,8 @@ def main():
         soc = SDRAMTestSoC(platform, "ddram_" + dw)
     elif sys.argv[1] == "drtio":
         soc = DRTIOTestSoC(platform)
-    elif sys.argv[1] == "amc_rtm_link":
-        soc = AMCRTMLinkTestSoC(platform)
+    elif sys.argv[1] == "serwb":
+        soc = SERWBTestSoC(platform)
     builder = Builder(soc, output_dir="build_sayma_amc")
     vns = builder.build()
 

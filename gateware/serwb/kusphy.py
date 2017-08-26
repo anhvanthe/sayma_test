@@ -1,14 +1,14 @@
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
-from migen.genlib.cdc import MultiReg, Gearbox
+from migen.genlib.cdc import MultiReg, PulseSynchronizer, Gearbox
 from migen.genlib.misc import BitSlip
 
 from misoc.cores.code_8b10b import Encoder, Decoder
 
-from amc_rtm_link.phy import PhaseDetector
+from serwb.phy import PhaseDetector
 
 
-class S7SerdesPLL(Module):
+class KUSSerdesPLL(Module):
     def __init__(self, refclk_freq, linerate, vco_div=1):
         assert refclk_freq == 125e6
         assert linerate == 1.25e9
@@ -65,7 +65,7 @@ class S7SerdesPLL(Module):
         self.specials += MultiReg(pll_locked, self.lock)
 
 
-class S7Serdes(Module):
+class KUSSerdes(Module):
     def __init__(self, pll, pads, mode="master"):
         self.tx_data = Signal(32)
         self.rx_data = Signal(32)
@@ -79,6 +79,7 @@ class S7Serdes(Module):
         self.rx_delay_rst = Signal()
         self.rx_delay_inc = Signal()
         self.rx_delay_ce = Signal()
+        self.rx_delay_en_vtc = Signal()
 
         # # #
 
@@ -112,13 +113,29 @@ class S7Serdes(Module):
         rx_idle = Signal()
         rx_comma = Signal()
         rx_bitslip_value = Signal(6)
+        rx_delay_rst = Signal()
+        rx_delay_inc = Signal()
+        rx_delay_en_vtc = Signal()
+        rx_delay_ce = Signal()
         self.specials += [
             MultiReg(self.tx_idle, tx_idle, "serdes"),
             MultiReg(self.tx_comma, tx_comma, "serdes"),
             MultiReg(rx_idle, self.rx_idle, "sys"),
-            MultiReg(rx_comma, self.rx_comma, "sys")
+            MultiReg(rx_comma, self.rx_comma, "sys"),
+            MultiReg(self.rx_bitslip_value, rx_bitslip_value, "serdes"),
+            MultiReg(self.rx_delay_inc, rx_delay_inc, "serdes_5x"),
+            MultiReg(self.rx_delay_en_vtc, rx_delay_en_vtc, "serdes_5x")
         ]
-        self.specials += MultiReg(self.rx_bitslip_value, rx_bitslip_value, "serdes"),
+        self.submodules.do_rx_delay_rst = PulseSynchronizer("sys", "serdes_5x")
+        self.comb += [
+            rx_delay_rst.eq(self.do_rx_delay_rst.o),
+            self.do_rx_delay_rst.i.eq(self.rx_delay_rst)
+        ]
+        self.submodules.do_rx_delay_ce = PulseSynchronizer("sys", "serdes_5x")
+        self.comb += [
+            rx_delay_ce.eq(self.do_rx_delay_ce.o),
+            self.do_rx_delay_ce.i.eq(self.rx_delay_ce)
+        ]
 
         # tx clock (linerate/10)
         if mode == "master":
@@ -129,19 +146,14 @@ class S7Serdes(Module):
                                                   (0b1111100000 <<  0))
             clk_o = Signal()
             self.specials += [
-                Instance("OSERDESE2",
-                    p_DATA_WIDTH=8, p_TRISTATE_WIDTH=1,
-                    p_DATA_RATE_OQ="DDR", p_DATA_RATE_TQ="BUF",
-                    p_SERDES_MODE="MASTER",
+                Instance("OSERDESE3",
+                    p_DATA_WIDTH=8, p_INIT=0,
+                    p_IS_CLK_INVERTED=0, p_IS_CLKDIV_INVERTED=0, p_IS_RST_INVERTED=0,
 
                     o_OQ=clk_o,
-                    i_OCE=1,
                     i_RST=ResetSignal("serdes"),
                     i_CLK=ClockSignal("serdes_20x"), i_CLKDIV=ClockSignal("serdes_5x"),
-                    i_D1=self.tx_clk_gearbox.o[0], i_D2=self.tx_clk_gearbox.o[1],
-                    i_D3=self.tx_clk_gearbox.o[2], i_D4=self.tx_clk_gearbox.o[3],
-                    i_D5=self.tx_clk_gearbox.o[4], i_D6=self.tx_clk_gearbox.o[5],
-                    i_D7=self.tx_clk_gearbox.o[6], i_D8=self.tx_clk_gearbox.o[7]
+                    i_D=self.tx_clk_gearbox.o
                 ),
                 Instance("OBUFDS",
                     i_I=clk_o,
@@ -173,19 +185,14 @@ class S7Serdes(Module):
 
         serdes_o = Signal()
         self.specials += [
-            Instance("OSERDESE2",
-                p_DATA_WIDTH=8, p_TRISTATE_WIDTH=1,
-                p_DATA_RATE_OQ="DDR", p_DATA_RATE_TQ="BUF",
-                p_SERDES_MODE="MASTER",
+            Instance("OSERDESE3",
+                p_DATA_WIDTH=8, p_INIT=0,
+                p_IS_CLK_INVERTED=0, p_IS_CLKDIV_INVERTED=0, p_IS_RST_INVERTED=0,
 
                 o_OQ=serdes_o,
-                i_OCE=1,
                 i_RST=ResetSignal("serdes"),
                 i_CLK=ClockSignal("serdes_20x"), i_CLKDIV=ClockSignal("serdes_5x"),
-                i_D1=self.tx_gearbox.o[0], i_D2=self.tx_gearbox.o[1],
-                i_D3=self.tx_gearbox.o[2], i_D4=self.tx_gearbox.o[3],
-                i_D5=self.tx_gearbox.o[4], i_D6=self.tx_gearbox.o[5],
-                i_D7=self.tx_gearbox.o[6], i_D8=self.tx_gearbox.o[7]
+                i_D=self.tx_gearbox.o
             ),
             Instance("OBUFDS",
                 i_I=serdes_o,
@@ -238,71 +245,60 @@ class S7Serdes(Module):
         serdes_m_i_delayed = Signal()
         serdes_m_q = Signal(8)
         self.specials += [
-            Instance("IDELAYE2",
-                p_DELAY_SRC="IDATAIN", p_SIGNAL_PATTERN="DATA",
-                p_CINVCTRL_SEL="FALSE", p_HIGH_PERFORMANCE_MODE="TRUE",
-                p_REFCLK_FREQUENCY=200.0, p_PIPE_SEL="FALSE",
-                p_IDELAY_TYPE="VARIABLE", p_IDELAY_VALUE=0,
+            Instance("IDELAYE3",
+                p_CASCADE="NONE", p_UPDATE_MODE="ASYNC", p_REFCLK_FREQUENCY=200.0,
+                p_IS_CLK_INVERTED=0, p_IS_RST_INVERTED=0,
+                p_DELAY_FORMAT="COUNT", p_DELAY_SRC="IDATAIN",
+                p_DELAY_TYPE="VARIABLE", p_DELAY_VALUE=0,
 
-                i_C=ClockSignal(),
-                i_LD=self.rx_delay_rst,
-                i_CE=self.rx_delay_ce,
-                i_LDPIPEEN=0, i_INC=self.rx_delay_inc,
+                i_CLK=ClockSignal("serdes_5x"),
+                i_RST=rx_delay_rst, i_LOAD=0,
+                i_INC=rx_delay_inc, i_EN_VTC=rx_delay_en_vtc,
+                i_CE=rx_delay_ce,
 
                 i_IDATAIN=serdes_m_i_nodelay, o_DATAOUT=serdes_m_i_delayed
             ),
-            Instance("ISERDESE2",
-                p_DATA_WIDTH=8, p_DATA_RATE="DDR",
-                p_SERDES_MODE="MASTER", p_INTERFACE_TYPE="NETWORKING",
-                p_NUM_CE=1, p_IOBDELAY="IFD",
+            Instance("ISERDESE3",
+                p_DATA_WIDTH=8,
 
-                i_DDLY=serdes_m_i_delayed,
-                i_CE1=1,
+                i_D=serdes_m_i_delayed,
                 i_RST=ResetSignal("serdes"),
-                i_CLK=ClockSignal("serdes_20x"), i_CLKB=~ClockSignal("serdes_20x"),
+                i_FIFO_RD_CLK=0, i_FIFO_RD_EN=0,
+                i_CLK=ClockSignal("serdes_20x"), i_CLK_B=~ClockSignal("serdes_20x"),
                 i_CLKDIV=ClockSignal("serdes_5x"),
-                i_BITSLIP=0,
-                o_Q8=serdes_m_q[0], o_Q7=serdes_m_q[1],
-                o_Q6=serdes_m_q[2], o_Q5=serdes_m_q[3],
-                o_Q4=serdes_m_q[4], o_Q3=serdes_m_q[5],
-                o_Q2=serdes_m_q[6], o_Q1=serdes_m_q[7]
+                o_Q=serdes_m_q
             )
         ]
         self.comb += self.phase_detector.mdata.eq(serdes_m_q)
 
         serdes_s_i_delayed = Signal()
         serdes_s_q = Signal(8)
-        serdes_s_idelay_value = int(1/(4*pll.linerate)/78e-12) # 1/4 bit period
-        assert serdes_s_idelay_value < 32
         self.specials += [
-            Instance("IDELAYE2",
-                p_DELAY_SRC="IDATAIN", p_SIGNAL_PATTERN="DATA",
-                p_CINVCTRL_SEL="FALSE", p_HIGH_PERFORMANCE_MODE="TRUE",
-                p_REFCLK_FREQUENCY=200.0, p_PIPE_SEL="FALSE",
-                p_IDELAY_TYPE="VARIABLE", p_IDELAY_VALUE=serdes_s_idelay_value,
+            Instance("IDELAYE3",
+                p_CASCADE="NONE", p_UPDATE_MODE="ASYNC", p_REFCLK_FREQUENCY=200.0,
+                p_IS_CLK_INVERTED=0, p_IS_RST_INVERTED=0,
+                # Note: can't use TIME mode since not reloading DELAY_VALUE on rst...
+				# Got answer from Xilinx, need testing:
+                # https://forums.xilinx.com/xlnx/board/crawl_message?board.id=ultrascale&message.id=4699
+                p_DELAY_FORMAT="COUNT", p_DELAY_SRC="IDATAIN",
+                p_DELAY_TYPE="VARIABLE", p_DELAY_VALUE=50, # 1/4 bit period (ambient temp)
 
-                i_C=ClockSignal(),
-                i_LD=self.rx_delay_rst,
-                i_CE=self.rx_delay_ce,
-                i_LDPIPEEN=0, i_INC=self.rx_delay_inc,
+                i_CLK=ClockSignal("serdes_5x"),
+                i_RST=rx_delay_rst, i_LOAD=0,
+                i_INC=rx_delay_inc, i_EN_VTC=rx_delay_en_vtc,
+                i_CE=rx_delay_ce,
 
                 i_IDATAIN=serdes_s_i_nodelay, o_DATAOUT=serdes_s_i_delayed
             ),
-            Instance("ISERDESE2",
-                p_DATA_WIDTH=8, p_DATA_RATE="DDR",
-                p_SERDES_MODE="MASTER", p_INTERFACE_TYPE="NETWORKING",
-                p_NUM_CE=1, p_IOBDELAY="IFD",
+            Instance("ISERDESE3",
+                p_DATA_WIDTH=8,
 
-                i_DDLY=serdes_s_i_delayed,
-                i_CE1=1,
+                i_D=serdes_s_i_delayed,
                 i_RST=ResetSignal("serdes"),
-                i_CLK=ClockSignal("serdes_20x"), i_CLKB=~ClockSignal("serdes_20x"),
+                i_FIFO_RD_CLK=0, i_FIFO_RD_EN=0,
+                i_CLK=ClockSignal("serdes_20x"), i_CLK_B=~ClockSignal("serdes_20x"),
                 i_CLKDIV=ClockSignal("serdes_5x"),
-                i_BITSLIP=0,
-                o_Q8=serdes_s_q[0], o_Q7=serdes_s_q[1],
-                o_Q6=serdes_s_q[2], o_Q5=serdes_s_q[3],
-                o_Q4=serdes_s_q[4], o_Q3=serdes_s_q[5],
-                o_Q2=serdes_s_q[6], o_Q1=serdes_s_q[7]
+                o_Q=serdes_s_q
             )
         ]
         self.comb += self.phase_detector.sdata.eq(~serdes_s_q)
