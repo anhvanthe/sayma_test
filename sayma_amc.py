@@ -282,7 +282,7 @@ class DRTIOTestSoC(SoCCore):
             print(qpll)
 
         self.submodules.drtio_phy = drtio_phy = MultiGTH(
-            plls, 
+            plls,
             platform.request("drtio_tx"),
             platform.request("drtio_rx"),
             clk_freq,

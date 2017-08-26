@@ -1,5 +1,6 @@
 from migen import *
 from migen.genlib.resetsync import AsyncResetSynchronizer
+from migen.genlib.cdc import MultiReg
 
 from misoc.interconnect.csr import *
 from misoc.cores.code_8b10b import Encoder, Decoder
