@@ -198,7 +198,7 @@ CLKIN +----> /M  +-->       Charge Pump         | +------------+->/2+--> CLKOUT
         return r
 
 
-class GTH(Module, TransceiverInterface):
+class GTHSingle(Module):
     def __init__(self, pll, tx_pads, rx_pads, sys_clk_freq, dw=20):
         assert (dw == 20) or (dw == 40)
 
@@ -210,14 +210,11 @@ class GTH(Module, TransceiverInterface):
         use_qpll0 = isinstance(pll, GTHQuadPLL) and pll.config["qpll"] == "qpll0"
         use_qpll1 = isinstance(pll, GTHQuadPLL) and pll.config["qpll"] == "qpll1"
 
-        encoder = ClockDomainsRenamer("rtio")(
+        self.submodules.encoder = encoder = ClockDomainsRenamer("rtio")(
             Encoder(nwords, True))
-        self.submodules += encoder
-        decoders = [ClockDomainsRenamer("rtio_rx0")(
+        self.submodules.decoders = decoders = [ClockDomainsRenamer("rtio_rx")(
             (Decoder(True))) for _ in range(nwords)]
-        self.submodules += decoders
-
-        TransceiverInterface.__init__(self, [ChannelInterface(encoder, decoders)])
+        self.rx_ready = Signal()
 
         self.rtio_clk_freq = pll.config["linerate"]/dw
 
@@ -343,8 +340,8 @@ class GTH(Module, TransceiverInterface):
                 i_RXOUTCLKSEL=0b010,
                 i_RXPLLCLKSEL=0b00,
                 o_RXOUTCLK=self.rxoutclk,
-                i_RXUSRCLK=ClockSignal("rtio_rx0"),
-                i_RXUSRCLK2=ClockSignal("rtio_rx0"),
+                i_RXUSRCLK=ClockSignal("rtio_rx"),
+                i_RXUSRCLK2=ClockSignal("rtio_rx"),
 
                 # RX Clock Correction Attributes
                 p_CLK_CORRECT_USE="FALSE",
@@ -376,6 +373,7 @@ class GTH(Module, TransceiverInterface):
         tx_reset_deglitched = Signal()
         tx_reset_deglitched.attr.add("no_retiming")
         self.sync += tx_reset_deglitched.eq(~tx_init.done)
+        self.clock_domains.cd_rtio = ClockDomain()
         tx_bufg_div = pll.config["clkin"]/self.rtio_clk_freq
         assert tx_bufg_div == int(tx_bufg_div)
         self.specials += [
@@ -388,25 +386,53 @@ class GTH(Module, TransceiverInterface):
         rx_reset_deglitched = Signal()
         rx_reset_deglitched.attr.add("no_retiming")
         self.sync.rtio += rx_reset_deglitched.eq(~rx_init.done)
+        self.clock_domains.cd_rtio_rx = ClockDomain()
         self.specials += [
-            Instance("BUFG_GT", i_I=self.rxoutclk, o_O=self.cd_rtio_rx0.clk),
-            AsyncResetSynchronizer(self.cd_rtio_rx0, rx_reset_deglitched)
+            Instance("BUFG_GT", i_I=self.rxoutclk, o_O=self.cd_rtio_rx.clk),
+            AsyncResetSynchronizer(self.cd_rtio_rx, rx_reset_deglitched)
         ]
 
         # tx data
-        chan = self.channels[0]
         self.comb += txdata.eq(Cat(*[encoder.output[i] for i in range(nwords)]))
         
         # rx data
         for i in range(nwords):
-            self.comb += chan.decoders[i].input.eq(rxdata[10*i:10*(i+1)])
+            self.comb += decoders[i].input.eq(rxdata[10*i:10*(i+1)])
 
         # clock alignment
-        clock_aligner = ClockDomainsRenamer({"rtio_rx": "rtio_rx0"})(
+        clock_aligner = ClockDomainsRenamer({"rtio_rx": "rtio_rx"})(
             BruteforceClockAligner(0b0101111100, self.rtio_clk_freq))
         self.submodules += clock_aligner
         self.comb += [
             clock_aligner.rxdata.eq(rxdata),
             rx_init.restart.eq(clock_aligner.restart),
-            chan.rx_ready.eq(clock_aligner.ready)
+            self.rx_ready.eq(clock_aligner.ready)
         ]
+
+
+class GTH(Module, TransceiverInterface):
+    def __init__(self, plls, tx_pads, rx_pads, sys_clk_freq, dw):
+        self.nchannels = nchannels = len(tx_pads.p)
+        self.gths = []
+
+        # # #
+
+        nwords = dw//10
+
+        def get_pads(pads, i):
+            class GTHPads:
+                def __init__(self, p, n):
+                    self.p = p
+                    self.n = n
+            return GTHPads(pads.p[i], pads.n[i])
+
+        channel_interfaces = []
+        for i in range(nchannels):
+            gth = GTHSingle(plls[i], get_pads(tx_pads, i), get_pads(rx_pads, i), sys_clk_freq, dw)
+            self.gths.append(gth)
+            setattr(self.submodules, "gth"+str(i), gth)
+            channel_interface = ChannelInterface(gth.encoder, gth.decoders)
+            self.comb += channel_interface.rx_ready.eq(gth.rx_ready)
+            channel_interfaces.append(channel_interface)
+
+        TransceiverInterface.__init__(self, channel_interfaces)

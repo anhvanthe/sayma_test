@@ -125,14 +125,14 @@ _io = [
 
     # drtio
     ("drtio_tx", 0,
-        Subsignal("p", Pins("AN4")),
-        Subsignal("n", Pins("AN3"))
+        Subsignal("p", Pins("AN4 AM6")),
+        Subsignal("n", Pins("AN3 AM5"))
     ),
     ("drtio_rx", 0,
-        Subsignal("p", Pins("AP2")),
-        Subsignal("n", Pins("AP1"))
+        Subsignal("p", Pins("AP2 AM2")),
+        Subsignal("n", Pins("AP1 AM1"))
     ),
-    ("drtio_tx_disable_n", 0, Pins("AP11"), IOStandard("LVCMOS18")),
+    ("drtio_tx_disable_n", 0, Pins("AP11 AM12"), IOStandard("LVCMOS18")),
 
     # rtm
     ("rtm_refclk125", 0,
@@ -272,44 +272,45 @@ class DRTIOTestSoC(SoCCore):
         ]
 
         if pll == "cpll":
-            pll = GTHChannelPLL(refclk, 125e6, 1.25e9)
-            self.submodules += pll
-            print(pll)
+            plls = [GTHChannelPLL(refclk, 125e6, 1.25e9) for i in range(2)]
+            self.submodules += iter(plls)
+            print(plls)
         elif pll == "qpll":
             qpll = GTHQuadPLL(refclk, 125e6, 1.25e9)
+            plls = [qpll for i in range(2)]
             self.submodules += qpll
             print(qpll)
 
         self.submodules.drtio_phy = drtio_phy = GTH(
-            pll,
+            plls,
             platform.request("drtio_tx"),
             platform.request("drtio_rx"),
             clk_freq,
-            dw=dw)
-        self.comb += platform.request("drtio_tx_disable_n").eq(0b1)
+            20)
+        self.comb += platform.request("drtio_tx_disable_n").eq(0b11)
 
         counter = Signal(32)
-        self.sync.rtio += counter.eq(counter + 1)
+        self.sync.gth0_rtio += counter.eq(counter + 1)
 
-        for i in range(1):
+        for i, channel in enumerate(drtio_phy.channels):
             self.comb += [
-                drtio_phy.channels[i].encoder.k[0].eq(1),
-                drtio_phy.channels[i].encoder.d[0].eq((5 << 5) | 28),
-                drtio_phy.channels[i].encoder.k[1].eq(0)
+                channel.encoder.k[0].eq(1),
+                channel.encoder.d[0].eq((5 << 5) | 28),
+                channel.encoder.k[1].eq(0)
             ]
-            self.comb += drtio_phy.channels[i].encoder.d[1].eq(counter[26:])
+            self.comb += channel.encoder.d[1].eq(counter[26:])
             for j in range(2):
-                self.comb += platform.request("user_led", 2*i + j).eq(drtio_phy.channels[i].decoders[1].d[j])
+                self.comb += platform.request("user_led", 2*i + j).eq(channel.decoders[1].d[j])   
 
-        for i in range(1):
-            drtio_phy.cd_rtio.clk.attr.add("keep")
-            drtio_phy.cd_rtio_rx0.clk.attr.add("keep")
-            platform.add_period_constraint(drtio_phy.cd_rtio.clk, 1e9/drtio_phy.rtio_clk_freq)
-            platform.add_period_constraint(drtio_phy.cd_rtio_rx0.clk, 1e9/drtio_phy.rtio_clk_freq)
+        for gth in drtio_phy.gths:
+            gth.cd_rtio.clk.attr.add("keep")
+            gth.cd_rtio_rx.clk.attr.add("keep")
+            platform.add_period_constraint(gth.cd_rtio.clk, 1e9/gth.rtio_clk_freq)
+            platform.add_period_constraint(gth.cd_rtio_rx.clk, 1e9/gth.rtio_clk_freq)
             self.platform.add_false_path_constraints(
                 self.crg.cd_sys.clk,
-                drtio_phy.cd_rtio.clk,
-                drtio_phy.cd_rtio_rx0.clk)
+                gth.cd_rtio.clk,
+                gth.cd_rtio_rx.clk)
 
 
 class SERWBTestSoC(SoCCore):
