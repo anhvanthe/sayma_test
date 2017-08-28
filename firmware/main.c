@@ -106,15 +106,11 @@ static void serwb_init(void)
 	    timeout--;
 	}
 
-	printf("delay_found: %d\n"
-		   "delay: %d\n"
-		   "bitslip_found: %d\n"
+	printf("delay: %d\n"
 		   "bitslip: %d\n"
 		   "ready: %d\n"
 		   "error: %d\n",
-		    serwb_control_delay_found_read(),
 		    serwb_control_delay_read(),
-		    serwb_control_bitslip_found_read(),
 		    serwb_control_bitslip_read(),
 		    serwb_control_ready_read(),
 		    serwb_control_error_read());
@@ -133,27 +129,27 @@ static unsigned int seed_to_data_32(unsigned int seed, int random)
 
 static void serwb_test(void)
 {
-	volatile unsigned int *array = (unsigned int *)serwb_RAM_BASE;
+	volatile unsigned int *array = (unsigned int *)SERWB_RAM_BASE;
 	int i, errors;
 	unsigned int seed_32;
 
 	errors = 0;
 	seed_32 = 0;
 
-	for(i=0;i<serwb_RAM_SIZE/4;i++) {
+	for(i=0;i<SERWB_RAM_SIZE/4;i++) {
 		seed_32 = seed_to_data_32(seed_32, 1);
 		array[i] = seed_32;
 	}
 
 	seed_32 = 0;
 	flush_cpu_dcache();
-	for(i=0;i<serwb_RAM_SIZE/4;i++) {
+	for(i=0;i<SERWB_RAM_SIZE/4;i++) {
 		seed_32 = seed_to_data_32(seed_32, 1);
 		if(array[i] != seed_32)
 			errors++;
 	}
 
-	printf("errors: %d/%d\n", errors, serwb_RAM_SIZE/4);
+	printf("errors: %d/%d\n", errors, SERWB_RAM_SIZE/4);
 }
 
 #define NUMBER_OF_BYTES_ON_A_LINE 16
