@@ -210,7 +210,7 @@ class GTHSingle(Module):
         use_qpll0 = isinstance(pll, GTHQuadPLL) and pll.config["qpll"] == "qpll0"
         use_qpll1 = isinstance(pll, GTHQuadPLL) and pll.config["qpll"] == "qpll1"
 
-        self.submodules.encoder = encoder = ClockDomainsRenamer("rtio")(
+        self.submodules.encoder = encoder = ClockDomainsRenamer("rtio_tx")(
             Encoder(nwords, True))
         self.submodules.decoders = decoders = [ClockDomainsRenamer("rtio_rx")(
             (Decoder(True))) for _ in range(nwords)]
@@ -228,7 +228,7 @@ class GTHSingle(Module):
         # TX generates RTIO clock, init must be in system domain
         tx_init = GTHInit(sys_clk_freq, False)
         # RX receives restart commands from RTIO domain
-        rx_init = ClockDomainsRenamer("rtio")(
+        rx_init = ClockDomainsRenamer("rtio_tx")(
             GTHInit(self.rtio_clk_freq, True))
         self.submodules += tx_init, rx_init
         self.comb += [
@@ -304,8 +304,8 @@ class GTHSingle(Module):
                 i_TXCTRL0=Cat(*[txdata[10*i+8] for i in range(nwords)]),
                 i_TXCTRL1=Cat(*[txdata[10*i+9] for i in range(nwords)]),
                 i_TXDATA=Cat(*[txdata[10*i:10*i+8] for i in range(nwords)]),
-                i_TXUSRCLK=ClockSignal("rtio"),
-                i_TXUSRCLK2=ClockSignal("rtio"),
+                i_TXUSRCLK=ClockSignal("rtio_tx"),
+                i_TXUSRCLK2=ClockSignal("rtio_tx"),
 
                 # TX electrical
                 i_TXPD=0b00,
@@ -373,19 +373,19 @@ class GTHSingle(Module):
         tx_reset_deglitched = Signal()
         tx_reset_deglitched.attr.add("no_retiming")
         self.sync += tx_reset_deglitched.eq(~tx_init.done)
-        self.clock_domains.cd_rtio = ClockDomain()
+        self.clock_domains.cd_rtio_tx = ClockDomain()
         tx_bufg_div = pll.config["clkin"]/self.rtio_clk_freq
         assert tx_bufg_div == int(tx_bufg_div)
         self.specials += [
-            Instance("BUFG_GT", i_I=self.txoutclk, o_O=self.cd_rtio.clk,
+            Instance("BUFG_GT", i_I=self.txoutclk, o_O=self.cd_rtio_tx.clk,
                 i_DIV=int(tx_bufg_div)-1),
-            AsyncResetSynchronizer(self.cd_rtio, tx_reset_deglitched)
+            AsyncResetSynchronizer(self.cd_rtio_tx, tx_reset_deglitched)
         ]
 
         # rx clocking
         rx_reset_deglitched = Signal()
         rx_reset_deglitched.attr.add("no_retiming")
-        self.sync.rtio += rx_reset_deglitched.eq(~rx_init.done)
+        self.sync.rtio_tx += rx_reset_deglitched.eq(~rx_init.done)
         self.clock_domains.cd_rtio_rx = ClockDomain()
         self.specials += [
             Instance("BUFG_GT", i_I=self.rxoutclk, o_O=self.cd_rtio_rx.clk),
@@ -400,8 +400,7 @@ class GTHSingle(Module):
             self.comb += decoders[i].input.eq(rxdata[10*i:10*(i+1)])
 
         # clock alignment
-        clock_aligner = ClockDomainsRenamer({"rtio_rx": "rtio_rx"})(
-            BruteforceClockAligner(0b0101111100, self.rtio_clk_freq))
+        clock_aligner = BruteforceClockAligner(0b0101111100, self.rtio_clk_freq)
         self.submodules += clock_aligner
         self.comb += [
             clock_aligner.rxdata.eq(rxdata),
@@ -429,3 +428,19 @@ class GTH(Module, TransceiverInterface):
             channel_interfaces.append(channel_interface)
 
         TransceiverInterface.__init__(self, channel_interfaces)
+
+        # rtio clock domain (clock from gth tx0, ored reset from all gth txs)
+        self.comb += self.cd_rtio.clk.eq(ClockSignal("gth0_rtio_tx"))
+        rtio_rst = Signal()
+        for i in range(nchannels):
+            rtio_rst.eq(rtio_rst | ResetSignal("gth" + str(i) + "rtio_tx"))
+            new_rtio_rst = Signal()
+            rtio_rst = new_rtio_rst
+        self.comb += self.cd_rtio.rst.eq(rtio_rst)
+
+        # rtio_rx clock domains
+        for i in range(nchannels):
+            self.comb += [
+                getattr(self, "cd_rtio_rx" + str(i)).clk.eq(self.gths[i].cd_rtio_rx.clk),
+                getattr(self, "cd_rtio_rx" + str(i)).rst.eq(self.gths[i].cd_rtio_rx.rst)
+            ]

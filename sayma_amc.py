@@ -144,7 +144,6 @@ _io = [
     ),
     ("drtio_tx_disable_n", 1, Pins("AM12"), IOStandard("LVCMOS18")),
 
-
     # rtm
     ("rtm_refclk125", 0,
         Subsignal("p", Pins("V6")),
@@ -301,7 +300,7 @@ class DRTIOTestSoC(SoCCore):
         self.comb += platform.request("drtio_tx_disable_n").eq(0b11)
 
         counter = Signal(32)
-        self.sync.gth0_rtio += counter.eq(counter + 1)
+        self.sync.rtio += counter.eq(counter + 1)
 
         for i, channel in enumerate(drtio_phy.channels):
             self.comb += [
@@ -314,13 +313,13 @@ class DRTIOTestSoC(SoCCore):
                 self.comb += platform.request("user_led", 2*i + j).eq(channel.decoders[1].d[j])   
 
         for gth in drtio_phy.gths:
-            gth.cd_rtio.clk.attr.add("keep")
+            gth.cd_rtio_tx.clk.attr.add("keep")
             gth.cd_rtio_rx.clk.attr.add("keep")
-            platform.add_period_constraint(gth.cd_rtio.clk, 1e9/gth.rtio_clk_freq)
+            platform.add_period_constraint(gth.cd_rtio_tx.clk, 1e9/gth.rtio_clk_freq)
             platform.add_period_constraint(gth.cd_rtio_rx.clk, 1e9/gth.rtio_clk_freq)
             self.platform.add_false_path_constraints(
                 self.crg.cd_sys.clk,
-                gth.cd_rtio.clk,
+                gth.cd_rtio_tx.clk,
                 gth.cd_rtio_rx.clk)
 
 
