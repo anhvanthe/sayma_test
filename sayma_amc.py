@@ -125,14 +125,25 @@ _io = [
 
     # drtio
     ("drtio_tx", 0,
-        Subsignal("p", Pins("AN4 AM6")),
-        Subsignal("n", Pins("AN3 AM5"))
+        Subsignal("p", Pins("AN4")),
+        Subsignal("n", Pins("AN3"))
     ),
     ("drtio_rx", 0,
-        Subsignal("p", Pins("AP2 AM2")),
-        Subsignal("n", Pins("AP1 AM1"))
+        Subsignal("p", Pins("AP2")),
+        Subsignal("n", Pins("AP1"))
     ),
-    ("drtio_tx_disable_n", 0, Pins("AP11 AM12"), IOStandard("LVCMOS18")),
+    ("drtio_tx_disable_n", 0, Pins("AP11"), IOStandard("LVCMOS18")),
+
+    ("drtio_tx", 1,
+        Subsignal("p", Pins("AM6")),
+        Subsignal("n", Pins("AM5"))
+    ),
+    ("drtio_rx", 1,
+        Subsignal("p", Pins("AM2")),
+        Subsignal("n", Pins("AM1"))
+    ),
+    ("drtio_tx_disable_n", 1, Pins("AM12"), IOStandard("LVCMOS18")),
+
 
     # rtm
     ("rtm_refclk125", 0,
@@ -283,8 +294,8 @@ class DRTIOTestSoC(SoCCore):
 
         self.submodules.drtio_phy = drtio_phy = GTH(
             plls,
-            platform.request("drtio_tx"),
-            platform.request("drtio_rx"),
+            [platform.request("drtio_tx", i) for i in range(2)],
+            [platform.request("drtio_rx", i) for i in range(2)],
             clk_freq,
             20)
         self.comb += platform.request("drtio_tx_disable_n").eq(0b11)

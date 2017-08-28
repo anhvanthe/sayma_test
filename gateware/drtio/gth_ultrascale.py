@@ -412,23 +412,16 @@ class GTHSingle(Module):
 
 class GTH(Module, TransceiverInterface):
     def __init__(self, plls, tx_pads, rx_pads, sys_clk_freq, dw):
-        self.nchannels = nchannels = len(tx_pads.p)
+        self.nchannels = nchannels = len(tx_pads)
         self.gths = []
 
         # # #
 
         nwords = dw//10
 
-        def get_pads(pads, i):
-            class GTHPads:
-                def __init__(self, p, n):
-                    self.p = p
-                    self.n = n
-            return GTHPads(pads.p[i], pads.n[i])
-
         channel_interfaces = []
         for i in range(nchannels):
-            gth = GTHSingle(plls[i], get_pads(tx_pads, i), get_pads(rx_pads, i), sys_clk_freq, dw)
+            gth = GTHSingle(plls[i], tx_pads[i], rx_pads[i], sys_clk_freq, dw)
             self.gths.append(gth)
             setattr(self.submodules, "gth"+str(i), gth)
             channel_interface = ChannelInterface(gth.encoder, gth.decoders)
