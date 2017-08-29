@@ -106,11 +106,13 @@ static void serwb_init(void)
 	    timeout--;
 	}
 
-	printf("delay: %d\n"
+	printf("delay: %d (%d, %d)\n"
 		   "bitslip: %d\n"
 		   "ready: %d\n"
 		   "error: %d\n",
 		    serwb_control_delay_read(),
+		    serwb_control_delay_min_read(),
+		    serwb_control_delay_max_read(),
 		    serwb_control_bitslip_read(),
 		    serwb_control_ready_read(),
 		    serwb_control_error_read());
