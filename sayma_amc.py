@@ -404,6 +404,7 @@ class SERWBTestSoC(SoCCore):
             serwb_rx_cdc.source.connect(serwb_depacketizer.sink),
         ]
         self.add_wb_slave(self.mem_map["serwb"], 8192, serwb_etherbone.wishbone.bus)
+        self.comb += serwb_etherbone.wishbone.ready.eq(serwb_init.ready)
 
 
 def main():
