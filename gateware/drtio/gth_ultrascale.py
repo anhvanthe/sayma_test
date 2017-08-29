@@ -199,8 +199,9 @@ CLKIN +----> /M  +-->       Charge Pump         | +------------+->/2+--> CLKOUT
 
 
 class GTHSingle(Module):
-    def __init__(self, pll, tx_pads, rx_pads, sys_clk_freq, dw=20):
+    def __init__(self, pll, tx_pads, rx_pads, sys_clk_freq, dw=20, mode="master"):
         assert (dw == 20) or (dw == 40)
+        assert mode in ["master", "slave"]
 
         # # #
 
@@ -374,13 +375,13 @@ class GTHSingle(Module):
         tx_reset_deglitched.attr.add("no_retiming")
         self.sync += tx_reset_deglitched.eq(~tx_init.done)
         self.clock_domains.cd_rtio_tx = ClockDomain()
-        tx_bufg_div = pll.config["clkin"]/self.rtio_clk_freq
-        assert tx_bufg_div == int(tx_bufg_div)
-        self.specials += [
-            Instance("BUFG_GT", i_I=self.txoutclk, o_O=self.cd_rtio_tx.clk,
-                i_DIV=int(tx_bufg_div)-1),
-            AsyncResetSynchronizer(self.cd_rtio_tx, tx_reset_deglitched)
-        ]
+        if mode is "master":
+            tx_bufg_div = pll.config["clkin"]/self.rtio_clk_freq
+            assert tx_bufg_div == int(tx_bufg_div)
+            self.specials += \
+                Instance("BUFG_GT", i_I=self.txoutclk, o_O=self.cd_rtio_tx.clk,
+                    i_DIV=int(tx_bufg_div)-1)
+        self.specials += AsyncResetSynchronizer(self.cd_rtio_tx, tx_reset_deglitched)
 
         # rx clocking
         rx_reset_deglitched = Signal()
@@ -410,7 +411,7 @@ class GTHSingle(Module):
 
 
 class GTH(Module, TransceiverInterface):
-    def __init__(self, plls, tx_pads, rx_pads, sys_clk_freq, dw):
+    def __init__(self, plls, tx_pads, rx_pads, sys_clk_freq, dw, master=0):
         self.nchannels = nchannels = len(tx_pads)
         self.gths = []
 
@@ -418,9 +419,15 @@ class GTH(Module, TransceiverInterface):
 
         nwords = dw//10
 
+        rtio_tx_clk = Signal()
         channel_interfaces = []
         for i in range(nchannels):
-            gth = GTHSingle(plls[i], tx_pads[i], rx_pads[i], sys_clk_freq, dw)
+            mode = "master" if i == master else "slave"
+            gth = GTHSingle(plls[i], tx_pads[i], rx_pads[i], sys_clk_freq, dw, mode)
+            if mode == "master":
+                self.comb += rtio_tx_clk.eq(gth.cd_rtio_tx.clk)
+            else:
+                self.comb += gth.cd_rtio_tx.clk.eq(rtio_tx_clk)
             self.gths.append(gth)
             setattr(self.submodules, "gth"+str(i), gth)
             channel_interface = ChannelInterface(gth.encoder, gth.decoders)

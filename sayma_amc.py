@@ -297,7 +297,8 @@ class DRTIOTestSoC(SoCCore):
             [platform.request("drtio_rx", i) for i in range(2)],
             clk_freq,
             20)
-        self.comb += platform.request("drtio_tx_disable_n").eq(0b11)
+        self.comb += platform.request("drtio_tx_disable_n", 0).eq(0b1)
+        self.comb += platform.request("drtio_tx_disable_n", 1).eq(0b1)
 
         counter = Signal(32)
         self.sync.rtio += counter.eq(counter + 1)
