@@ -16,7 +16,7 @@ from gateware.serwb.s7phy import S7Serdes
 # 5) Slave stops sending K25.5 commas.
 # 6) Link is ready.
 
-class SerdesMasterInit(Module):
+class _SerdesMasterInit(Module):
     def __init__(self, serdes, taps):
         self.reset = Signal()
         self.error = Signal()
@@ -146,7 +146,7 @@ class SerdesMasterInit(Module):
         )
 
 
-class SerdesSlaveInit(Module, AutoCSR):
+class _SerdesSlaveInit(Module, AutoCSR):
     def __init__(self, serdes, taps):
         self.reset = Signal()
         self.ready = Signal()
@@ -269,7 +269,7 @@ class SerdesSlaveInit(Module, AutoCSR):
         )
 
 
-class SerdesControl(Module, AutoCSR):
+class _SerdesControl(Module, AutoCSR):
     def __init__(self, init, mode="master"):
         if mode == "master":
             self.reset = CSR()
@@ -369,7 +369,7 @@ class SERWBPHY(Module, AutoCSR):
         else:
             raise NotImplementedError
         if mode == "master":
-            self.submodules.init = SerdesMasterInit(self.serdes, taps)
+            self.submodules.init = _SerdesMasterInit(self.serdes, taps)
         else:
-            self.submodules.init = SerdesSlaveInit(self.serdes, taps)
-        self.submodules.control = SerdesControl(self.init, mode)
+            self.submodules.init = _SerdesSlaveInit(self.serdes, taps)
+        self.submodules.control = _SerdesControl(self.init, mode)
