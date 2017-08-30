@@ -13,13 +13,11 @@ from misoc.integration.soc_core import *
 from misoc.integration.soc_sdram import *
 from misoc.integration.builder import *
 from misoc.interconnect.csr import *
-from misoc.interconnect import stream
 
 from drtio.gth_ultrascale import GTHChannelPLL, GTHQuadPLL, GTH
 
 from serwb.phy import SERWBPLL, SERWBPHY
-from serwb import packet
-from serwb import etherbone
+from serwb.core import SERWBCore
 
 
 _io = [
@@ -310,7 +308,7 @@ class DRTIOTestSoC(SoCCore):
             ]
             self.comb += channel.encoder.d[1].eq(counter[26:])
             for j in range(2):
-                self.comb += platform.request("user_led", 2*i + j).eq(channel.decoders[1].d[j])   
+                self.comb += platform.request("user_led", 2*i + j).eq(channel.decoders[1].d[j])
 
         for gth in drtio_phy.gths:
             gth.cd_rtio_tx.clk.attr.add("keep")
@@ -371,36 +369,10 @@ class SERWBTestSoC(SoCCore):
 
 
         # wishbone slave
-        serwb_depacketizer = packet.Depacketizer(clk_freq)
-        serwb_packetizer = packet.Packetizer()
-        self.submodules += serwb_depacketizer, serwb_packetizer
-        serwb_etherbone = etherbone.Etherbone(mode="slave")
-        self.submodules += serwb_etherbone
-        serwb_tx_cdc = stream.AsyncFIFO([("data", 32)], 8)
-        serwb_tx_cdc = ClockDomainsRenamer({"write": "sys", "read": "serdes"})(serwb_tx_cdc)
-        self.submodules += serwb_tx_cdc
-        serwb_rx_cdc = stream.AsyncFIFO([("data", 32)], 8)
-        serwb_rx_cdc = ClockDomainsRenamer({"write": "serdes", "read": "sys"})(serwb_rx_cdc)
-        self.submodules += serwb_rx_cdc
-        self.comb += [
-            # core <--> etherbone
-            serwb_depacketizer.source.connect(serwb_etherbone.sink),
-            serwb_etherbone.source.connect(serwb_packetizer.sink),
-
-            # core --> serdes
-            serwb_packetizer.source.connect(serwb_tx_cdc.sink),
-            If(serwb_tx_cdc.source.stb & serwb_phy.init.ready,
-                serwb_phy.serdes.tx_data.eq(serwb_tx_cdc.source.data)
-            ),
-            serwb_tx_cdc.source.ack.eq(serwb_phy.init.ready),
-
-            # serdes --> core
-            serwb_rx_cdc.sink.stb.eq(serwb_phy.init.ready),
-            serwb_rx_cdc.sink.data.eq(serwb_phy.serdes.rx_data),
-            serwb_rx_cdc.source.connect(serwb_depacketizer.sink),
-        ]
-        self.add_wb_slave(self.mem_map["serwb"], 8192, serwb_etherbone.wishbone.bus)
-        self.comb += serwb_etherbone.wishbone.ready.eq(serwb_phy.init.ready)
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
+        self.submodules += serwb_core
+        self.add_wb_slave(self.mem_map["serwb"], 8192, serwb_core.etherbone.wishbone.bus)
+        self.comb += serwb_core.etherbone.wishbone.ready.eq(serwb_phy.init.ready)
 
 
 def main():

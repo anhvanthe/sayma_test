@@ -16,8 +16,7 @@ from misoc.interconnect import wishbone
 
 
 from serwb.phy import SERWBPLL, SERWBPHY
-from serwb import packet
-from serwb import etherbone
+from serwb.core import SERWBCore
 
 
 _io = [
@@ -137,35 +136,9 @@ class SERWBTestSoC(SoCCore):
 
 
         # wishbone master
-        serwb_depacketizer = packet.Depacketizer(clk_freq)
-        serwb_packetizer = packet.Packetizer()
-        self.submodules += serwb_depacketizer, serwb_packetizer
-        serwb_etherbone = etherbone.Etherbone(mode="master")
-        self.submodules += serwb_etherbone
-        serwb_tx_cdc = stream.AsyncFIFO([("data", 32)], 8)
-        serwb_tx_cdc = ClockDomainsRenamer({"write": "sys", "read": "serdes"})(serwb_tx_cdc)
-        self.submodules += serwb_tx_cdc
-        serwb_rx_cdc = stream.AsyncFIFO([("data", 32)], 8)
-        serwb_rx_cdc = ClockDomainsRenamer({"write": "serdes", "read": "sys"})(serwb_rx_cdc)
-        self.submodules += serwb_rx_cdc
-        self.comb += [
-            # core <--> etherbone
-            serwb_depacketizer.source.connect(serwb_etherbone.sink),
-            serwb_etherbone.source.connect(serwb_packetizer.sink),
-
-            # core --> serdes
-            serwb_packetizer.source.connect(serwb_tx_cdc.sink),
-            If(serwb_tx_cdc.source.stb & serwb_phy.init.ready,
-                serwb_phy.serdes.tx_data.eq(serwb_tx_cdc.source.data)
-            ),
-            serwb_tx_cdc.source.ack.eq(serwb_phy.init.ready),
-
-            # serdes --> core
-            serwb_rx_cdc.sink.stb.eq(serwb_phy.init.ready),
-            serwb_rx_cdc.sink.data.eq(serwb_phy.serdes.rx_data),
-            serwb_rx_cdc.source.connect(serwb_depacketizer.sink),
-        ]
-        self.add_wb_master(serwb_etherbone.wishbone.bus)
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master")
+        self.submodules += serwb_core
+        self.add_wb_master(serwb_core.etherbone.wishbone.bus)
 
         # wishbone test memory
         self.submodules.serwb_sram = wishbone.SRAM(8192, init=[i for i in range(8192//4)])
