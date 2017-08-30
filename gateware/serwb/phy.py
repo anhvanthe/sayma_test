@@ -19,8 +19,8 @@ from gateware.serwb.s7phy import S7Serdes
 class _SerdesMasterInit(Module):
     def __init__(self, serdes, taps):
         self.reset = Signal()
-        self.error = Signal()
         self.ready = Signal()
+        self.error = Signal()
 
         # # #
 
@@ -75,6 +75,7 @@ class _SerdesMasterInit(Module):
                 If(serdes.rx_comma,
                     timer.wait.eq(1),
                     If(timer.done,
+                        timer.wait.eq(0),
                         NextValue(delay_min, delay),
                         NextValue(delay_min_found, 1)
                     )
@@ -85,7 +86,7 @@ class _SerdesMasterInit(Module):
                 If(~serdes.rx_comma,
                     NextValue(delay_max, delay),
                     NextValue(delay_max_found, 1),
-                    NextState("RESET_SAMPLING_WINDOW")
+                    NextState("CHECK_SAMPLING_WINDOW")
                 ).Else(
                     NextState("INC_DELAY_BITSLIP")
                 )
@@ -96,12 +97,10 @@ class _SerdesMasterInit(Module):
         fsm.act("INC_DELAY_BITSLIP",
             NextState("WAIT_STABLE"),
             If(delay == (taps - 1),
-                If(delay_min_found,
-                    NextState("ERROR")
-                ),
                 If(bitslip == (40 - 1),
-                    NextValue(bitslip, 0)
+                    NextState("ERROR")
                 ).Else(
+                    NextValue(delay_min_found, 0),
                     NextValue(bitslip, bitslip + 1)
                 ),
                 NextValue(delay, 0),
@@ -112,6 +111,17 @@ class _SerdesMasterInit(Module):
                 serdes.rx_delay_ce.eq(1)
             ),
             serdes.tx_comma.eq(1)
+        )
+        fsm.act("CHECK_SAMPLING_WINDOW",
+            If((delay_min == 0) |
+               (delay_max == (taps - 1)) |
+               ((delay_max - delay_min) < taps//16),
+               NextValue(delay_min_found, 0),
+               NextValue(delay_max_found, 0),
+               NextState("WAIT_STABLE")
+            ).Else(
+                NextState("RESET_SAMPLING_WINDOW")
+            )
         )
         fsm.act("RESET_SAMPLING_WINDOW",
             NextValue(delay, 0),
@@ -202,7 +212,7 @@ class _SerdesSlaveInit(Module, AutoCSR):
                 If(~serdes.rx_comma,
                     NextValue(delay_max, delay),
                     NextValue(delay_max_found, 1),
-                    NextState("RESET_SAMPLING_WINDOW")
+                    NextState("CHECK_SAMPLING_WINDOW")
                 ).Else(
                     NextState("INC_DELAY_BITSLIP")
                 )
@@ -213,12 +223,10 @@ class _SerdesSlaveInit(Module, AutoCSR):
         fsm.act("INC_DELAY_BITSLIP",
             NextState("WAIT_STABLE"),
             If(delay == (taps - 1),
-                If(delay_min_found,
-                    NextState("ERROR")
-                ),
                 If(bitslip == (40 - 1),
-                    NextValue(bitslip, 0)
+                    NextState("ERROR")
                 ).Else(
+                    NextValue(delay_min_found, 0),
                     NextValue(bitslip, bitslip + 1)
                 ),
                 NextValue(delay, 0),
@@ -229,6 +237,17 @@ class _SerdesSlaveInit(Module, AutoCSR):
                 serdes.rx_delay_ce.eq(1)
             ),
             serdes.tx_idle.eq(1)
+        )
+        fsm.act("CHECK_SAMPLING_WINDOW",
+            If((delay_min == 0) |
+               (delay_max == (taps - 1)) |
+               ((delay_max - delay_min) < taps//16),
+               NextValue(delay_min_found, 0),
+               NextValue(delay_max_found, 0),
+               NextState("WAIT_STABLE")
+            ).Else(
+                NextState("RESET_SAMPLING_WINDOW")
+            )
         )
         fsm.act("RESET_SAMPLING_WINDOW",
             NextValue(delay, 0),
