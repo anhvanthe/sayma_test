@@ -660,7 +660,7 @@ class _EtherboneWishboneSlave(Module):
                         NextState("SEND_WRITE")
                     ).Else(
                         NextState("SEND_READ")
-                    ),
+                    )
                 ).Else(
                     NextState("SEND_ERROR")
                 )
