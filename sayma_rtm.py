@@ -14,8 +14,8 @@ from misoc.interconnect.csr import *
 from misoc.interconnect import stream
 from misoc.interconnect import wishbone
 
-from serwb.s7phy import S7SerdesPLL, S7Serdes
-from serwb.phy import SerdesSlaveInit, SerdesControl
+
+from serwb.phy import SERWBPLL, SERWBPHY
 from serwb import packet
 from serwb import etherbone
 
@@ -117,27 +117,23 @@ class SERWBTestSoC(SoCCore):
         platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
         # amc rtm link
-        serwb_pll = S7SerdesPLL(125e6, 1.25e9, vco_div=1)
+        serwb_pll = SERWBPLL(125e6, 1.25e9, vco_div=1)
         self.submodules += serwb_pll
 
-        serwb_pads = platform.request("serwb")
-        serwb_serdes = S7Serdes(serwb_pll, serwb_pads, mode="slave")
-        self.submodules.serwb_serdes = serwb_serdes
-        serwb_init =  SerdesSlaveInit(serwb_serdes, taps=32)
-        self.submodules.serwb_init = serwb_init
-        self.submodules.serwb_control = SerdesControl(serwb_init, mode="slave")
-        self.comb += self.crg.reset.eq(serwb_init.reset)
+        serwb_phy = SERWBPHY(platform.device, serwb_pll, platform.request("serwb"), mode="slave")
+        self.submodules.serwb_phy = serwb_phy
+        self.comb += self.crg.reset.eq(serwb_phy.init.reset)
 
-        serwb_serdes.cd_serdes.clk.attr.add("keep")
-        serwb_serdes.cd_serdes_20x.clk.attr.add("keep")
-        serwb_serdes.cd_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_serdes.cd_serdes.clk, 32.0),
-        platform.add_period_constraint(serwb_serdes.cd_serdes_20x.clk, 1.6),
-        platform.add_period_constraint(serwb_serdes.cd_serdes_5x.clk, 6.4)
+        serwb_phy.serdes.cd_serdes.clk.attr.add("keep")
+        serwb_phy.serdes.cd_serdes_20x.clk.attr.add("keep")
+        serwb_phy.serdes.cd_serdes_5x.clk.attr.add("keep")
+        platform.add_period_constraint(serwb_phy.serdes.cd_serdes.clk, 32.0),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serdes_20x.clk, 1.6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serdes_5x.clk, 6.4)
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
-            serwb_serdes.cd_serdes.clk,
-            serwb_serdes.cd_serdes_5x.clk)
+            serwb_phy.serdes.cd_serdes.clk,
+            serwb_phy.serdes.cd_serdes_5x.clk)
 
 
         # wishbone master
@@ -156,17 +152,17 @@ class SERWBTestSoC(SoCCore):
             # core <--> etherbone
             serwb_depacketizer.source.connect(serwb_etherbone.sink),
             serwb_etherbone.source.connect(serwb_packetizer.sink),
-            
+
             # core --> serdes
             serwb_packetizer.source.connect(serwb_tx_cdc.sink),
-            If(serwb_tx_cdc.source.stb & serwb_init.ready,
-                serwb_serdes.tx_data.eq(serwb_tx_cdc.source.data)
+            If(serwb_tx_cdc.source.stb & serwb_phy.init.ready,
+                serwb_phy.serdes.tx_data.eq(serwb_tx_cdc.source.data)
             ),
-            serwb_tx_cdc.source.ack.eq(serwb_init.ready),
+            serwb_tx_cdc.source.ack.eq(serwb_phy.init.ready),
 
             # serdes --> core
-            serwb_rx_cdc.sink.stb.eq(serwb_init.ready),
-            serwb_rx_cdc.sink.data.eq(serwb_serdes.rx_data),
+            serwb_rx_cdc.sink.stb.eq(serwb_phy.init.ready),
+            serwb_rx_cdc.sink.data.eq(serwb_phy.serdes.rx_data),
             serwb_rx_cdc.source.connect(serwb_depacketizer.sink),
         ]
         self.add_wb_master(serwb_etherbone.wishbone.bus)
