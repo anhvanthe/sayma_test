@@ -15,7 +15,7 @@ from migen import *
 from misoc.interconnect import stream
 from misoc.interconnect import wishbone
 
-from serwb.packet import *
+from gateware.serwb.packet import *
 
 
 class _Packetizer(Module):

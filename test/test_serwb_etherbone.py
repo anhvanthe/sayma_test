@@ -47,13 +47,13 @@ class DUT(Module):
         m2s_upconverter = Converter(16, 32)
         self.submodules += m2s_upconverter, m2s_downconverter
         self.comb += [
-        	slave_packetizer.source.connect(s2m_downconverter.sink),
-        	s2m_downconverter.source.connect(s2m_upconverter.sink),
-        	s2m_upconverter.source.connect(master_depacketizer.sink),
+            slave_packetizer.source.connect(s2m_downconverter.sink),
+            s2m_downconverter.source.connect(s2m_upconverter.sink),
+            s2m_upconverter.source.connect(master_depacketizer.sink),
 
-        	master_packetizer.source.connect(m2s_downconverter.sink),
-        	m2s_downconverter.source.connect(m2s_upconverter.sink),
-        	m2s_upconverter.source.connect(slave_depacketizer.sink)
+            master_packetizer.source.connect(m2s_downconverter.sink),
+            m2s_downconverter.source.connect(m2s_upconverter.sink),
+            m2s_upconverter.source.connect(slave_depacketizer.sink)
         ]
 
         # expose wishbone slave
