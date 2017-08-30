@@ -109,7 +109,7 @@ class SERWBTestSoC(SoCCore):
             integrated_sram_size=0x8000,
             ident="Sayma RTM / AMC <--> RTM Link Test Design"
         )
-        self.csr_devices += ["serwb_control"]
+        self.csr_devices += ["serwb_phy"]
 
         self.submodules.crg = _CRG(platform)
         self.crg.cd_sys.clk.attr.add("keep")

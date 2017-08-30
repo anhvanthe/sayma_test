@@ -98,9 +98,9 @@ static void serwb_init(void)
 {
 	int timeout = 10;
 
-	serwb_control_reset_write(1);
-	while (((serwb_control_ready_read() & 0x1) == 0) &
-		   ((serwb_control_error_read() & 0x1) == 0) &
+	serwb_phy_control_reset_write(1);
+	while (((serwb_phy_control_ready_read() & 0x1) == 0) &
+		   ((serwb_phy_control_error_read() & 0x1) == 0) &
 		   (timeout > 0)) {
 		busy_wait(1);
 	    timeout--;
@@ -110,12 +110,12 @@ static void serwb_init(void)
 		   "bitslip: %d\n"
 		   "ready: %d\n"
 		   "error: %d\n",
-		    serwb_control_delay_read(),
-		    serwb_control_delay_min_read(),
-		    serwb_control_delay_max_read(),
-		    serwb_control_bitslip_read(),
-		    serwb_control_ready_read(),
-		    serwb_control_error_read());
+		    serwb_phy_control_delay_read(),
+		    serwb_phy_control_delay_min_read(),
+		    serwb_phy_control_delay_max_read(),
+		    serwb_phy_control_bitslip_read(),
+		    serwb_phy_control_ready_read(),
+		    serwb_phy_control_error_read());
 }
 
 #define SERWB_RAM_BASE 0x20000000
