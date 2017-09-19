@@ -50,12 +50,8 @@
 
 module jesd204_phy_0_example_design_clks_in (
 
-  input    core_clk_tx_p,
-  input    core_clk_tx_n,
   output   tx_coreclk,
 
-  input    core_clk_rx_p,
-  input    core_clk_rx_n,
   output   rx_coreclk,
   
   input    drpclk_in,
@@ -76,40 +72,30 @@ module jesd204_phy_0_example_design_clks_in (
 
   wire            rx_coreclk_pad;
 
+  wire            core_clk;
+
 //*********************************** Beginning of Code *******************************
 
   //  Static signal Assignments
   assign tied_to_ground_i    = 1'b0;
   assign tied_to_vcc_i       = 1'b1;
 
-  IBUFDS i_coreclk_tx_ibufds (
-    .I  (core_clk_tx_p),
-    .IB (core_clk_tx_n),
-    .O  (tx_coreclk_pad)
-  );
 
-  BUFG i_coreclk_tx_ibufg
+  assign tx_coreclk = core_clk_bufg;
+  assign rx_coreclk = core_clk_bufg; 
+
+  BUFG_GT i_coreclk_tx_ibufg
   (
-    .O (tx_coreclk),
-    .I (tx_coreclk_pad)
+    .O (core_clk_bufg),
+    .I (core_clk)
   );
 
-  IBUFDS i_coreclk_rx_ibufds (
-    .I  (core_clk_rx_p),
-    .IB (core_clk_rx_n),
-    .O  (rx_coreclk_pad)
-  );
-
-  BUFG i_coreclk_rx_ibufg
-  (
-    .O (rx_coreclk),
-    .I (rx_coreclk_pad)
-  );
-
-  IBUFDS_GTE3 i_refclk_common (
+  IBUFDS_GTE3 #( 
+  .REFCLK_HROW_CK_SEL(2'd0)
+  ) i_refclk_common (
     .I  (refclk_common_p),
     .IB (refclk_common_n),
-    .ODIV2           (),
+    .ODIV2           (core_clk),
     .CEB             (tied_to_ground_i),
     .O  (refclk_common_out)
   );
@@ -120,5 +106,3 @@ module jesd204_phy_0_example_design_clks_in (
     .I (drpclk_in)
   );
 endmodule
-
-

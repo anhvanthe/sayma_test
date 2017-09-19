@@ -211,12 +211,8 @@ jesd204_phy_0_example_design_sequencer sequencer_i (
 //
 // ----------------------------------------------------------------------------
 jesd204_phy_0_example_design_clks_in clks_in_i (
-  .core_clk_tx_p                       (core_clk_tx_p                 ),
-  .core_clk_tx_n                       (core_clk_tx_n                 ),
   .tx_coreclk                          (tx_coreclk                    ),
 
-  .core_clk_rx_p                       (core_clk_rx_p                 ),
-  .core_clk_rx_n                       (core_clk_rx_n                 ),
   .rx_coreclk                          (rx_coreclk                    ),
 
   .drpclk_in                           (drpclk_in                     ),

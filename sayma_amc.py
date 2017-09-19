@@ -20,13 +20,6 @@ from litedram.phy import kusddrphy
 from litedram.frontend.bist import LiteDRAMBISTGenerator
 from litedram.frontend.bist import LiteDRAMBISTChecker
 
-from litejesd204b.common import *
-from litejesd204b.phy.gth import GTHQuadPLL as JESD204BGTHQuadPLL
-from litejesd204b.phy.gth import GTHChannelPLL as JESD204BGTHChannelPLL
-from litejesd204b.phy import LiteJESD204BPhyTX
-from litejesd204b.core import LiteJESD204BCoreTX
-from litejesd204b.core import LiteJESD204BCoreTXControl
-
 from drtio.gth_ultrascale import GTHChannelPLL, GTHQuadPLL, GTH
 
 from serwb.phy import SERWBPLL, SERWBPHY
@@ -163,8 +156,8 @@ _io = [
         IOStandard("LVDS")
     ),
     ("dac_jesd", 0,
-	    Subsignal("txp", Pins("R4 U4 W4 AA4 AC4 AE4 AG4 AH6")),
-        Subsignal("txn", Pins("R3 U3 W3 AA3 AC3 AE3 AG3 AH5"))
+        Subsignal("txp", Pins("R4 U4")),
+        Subsignal("txn", Pins("R3 U3"))
     ),
 
     ("dac_refclk", 1,
@@ -182,10 +175,20 @@ _io = [
         IOStandard("LVDS")
     ),
     ("dac_jesd", 1,
-        Subsignal("txp", Pins("B6 C4 D6 F6 G4 J4 L4 N4")),
-        Subsignal("txn", Pins("B5 C3 D5 F5 G3 J3 L3 N3"))
+        Subsignal("txp", Pins("B6 C4")),
+        Subsignal("txn", Pins("B5 C3"))
     ),
 
+    # adc
+    ("adc_refclk", 1,
+        Subsignal("p", Pins("K6")), # fake: don't care
+        Subsignal("n", Pins("K5")), # fake: don't care
+    ),
+
+    ("adc_jesd", 1,
+        Subsignal("rxp", Pins("E4 D2")), # fake: don't care
+        Subsignal("rxn", Pins("E3 D1"))  # fake: don't care
+    ),
 
     # drtio
     ("drtio_tx", 0,
@@ -420,13 +423,14 @@ def get_phy_pads(jesd_pads, n):
     return PHYPads(jesd_pads.txp[n], jesd_pads.txn[n])
 
 
+class JESDControl(Module, AutoCSR):
+    def __init__(self):
+        self.reset = CSRStorage()
+
 class JESDTestSoC(SoCCore):
     csr_map = {
-        "dac0_control": 20,
-        "dac0_core":    21,
-        "dac1_control": 22,
-        "dac1_core":    23,        
-        "analyzer":     30
+        "jesd_control":  20,       
+        "analyzer": 30
     }
     csr_map.update(SoCCore.csr_map)
 
@@ -456,79 +460,67 @@ class JESDTestSoC(SoCCore):
             platform.request("usr_uart_n").eq(aux_uart_pads.rx)
         ]
 
+        self.submodules.jesd_control = JESDControl()
+
         # jesd
-        ps = JESD204BPhysicalSettings(l=8, m=4, n=16, np=16)
-        ts = JESD204BTransportSettings(f=2, s=2, k=16, cs=0)
-        settings = JESD204BSettings(ps, ts, did=0x5a, bid=0x5)
-        linerate = 5e9
-        refclk_freq = 125e6
+        jesd_reset = Signal()
+        jesd_tx_reset_done = Signal()
+        jesd_rx_reset_done = Signal()
 
-        self.clock_domains.cd_jesd = ClockDomain()
-        refclk_pads = platform.request("dac_refclk", dac)
+        sys_refclk_pads = platform.request("dac_sysref", 1)
+        
+        refclk_pads = platform.request("dac_refclk", 1)
+        dac_jesd_pads = platform.request("dac_jesd", 1)
+        adc_jesd_pads = platform.request("adc_jesd", 1)
 
-        self.refclk = Signal()
-        refclk_to_bufg_gt = Signal()
-        self.specials += [
-            Instance("IBUFDS_GTE3", i_CEB=0,
-                     p_REFCLK_HROW_CK_SEL=0b00,
-                     i_I=refclk_pads.p, i_IB=refclk_pads.n,
-                     o_O=self.refclk, o_ODIV2=refclk_to_bufg_gt),
-            Instance("BUFG_GT", i_I=refclk_to_bufg_gt, o_O=self.cd_jesd.clk)
+
+        adc_refclk_pads = platform.request("adc_refclk", 1)
+
+        self.specials += Instance("jesd204_phy_0_example_design", 
+            i_s_axi_aclk=0,
+            i_s_axi_aresetn=0,
+            i_s_axi_awaddr=0,
+            i_s_axi_awvalid=0,
+            #o_s_axi_awready=,
+            i_s_axi_wdata=0,
+            i_s_axi_wvalid=0,
+            #o_s_axi_wready=,
+            #o_s_axi_bresp=,
+            #o_s_axi_bvalid=,
+            i_s_axi_bready=1,
+            i_s_axi_araddr=0,
+            i_s_axi_arvalid=0,
+            #o_s_axi_arready=,
+            #o_s_axi_rdata=,
+            #o_s_axi_rresp=,
+            #o_s_axi_rvalid,
+            i_s_axi_rready=0,
+
+            i_drpclk_in=ClockSignal(),
+            i_refclk_common_p=refclk_pads.p,
+            i_refclk_common_n=refclk_pads.n,
+            i_reset=self.jesd_control.reset.storage,
+              
+            #o_gpio_led_testPassed=,
+            #o_gpio_led_error=,
+            o_gpio_led_txResetDone=jesd_tx_reset_done,
+            o_gpio_led_rxResetDone=jesd_rx_reset_done,
+
+            #o_data_gen_all_one=,
+            #o_data_check_all_one=,
+            #o_sel_out=,
+
+            o_txp=dac_jesd_pads.txp,
+            o_txn=dac_jesd_pads.txn,
+            i_rxp=adc_jesd_pads.rxp,
+            i_rxn=adc_jesd_pads.rxn
+        )
+        platform.add_source_dir(os.path.join("gateware", "jesd"))
+
+        self.comb += [
+            platform.request("user_led", 0).eq(jesd_tx_reset_done),
+            platform.request("user_led", 1).eq(jesd_rx_reset_done),
         ]
-        platform.add_period_constraint(self.cd_jesd.clk, 1e9/refclk_freq)
-
-        for dac in range(2):
-            jesd_pads = platform.request("dac_jesd", dac)
-            phys = []
-            for i in range(len(jesd_pads.txp)):
-                if i%4 == 0:
-                    qpll = JESD204BGTHQuadPLL(self.refclk, refclk_freq, linerate)
-                    self.submodules += qpll
-                    print(qpll)
-
-                phy = LiteJESD204BPhyTX(
-                    qpll, get_phy_pads(jesd_pads, i), self.clk_freq,
-                    transceiver="gth")
-                platform.add_period_constraint(phy.transmitter.cd_tx.clk, 40*1e9/linerate)
-                platform.add_false_path_constraints(
-                    self.crg.cd_sys.clk,
-                    self.cd_jesd.clk,
-                    phy.transmitter.cd_tx.clk)
-                phys.append(phy)
-            to_jesd = ClockDomainsRenamer("jesd")
-            core = to_jesd(LiteJESD204BCoreTX(phys, settings, converter_data_width=64))
-            control = to_jesd(LiteJESD204BCoreTXControl(core))
-            setattr(self.submodules, "dac"+str(dac)+"_core", core)
-            setattr(self.submodules, "dac"+str(dac)+"_control", control)
-            core.register_jsync(platform.request("dac_sync", dac))
-
-            # jesd pattern (ramp)
-            data0 = Signal(16)
-            data1 = Signal(16)
-            data2 = Signal(16)
-            data3 = Signal(16)
-            self.sync.jesd += [
-                data0.eq(data0 + 4096),   # freq = dacclk/32
-                data1.eq(data1 + 8192),   # freq = dacclk/16
-                data2.eq(data2 + 16384),  # freq = dacclk/8
-                data3.eq(data3 + 32768)   # freq = dacclk/4
-            ]
-            self.comb += [
-                core.sink.converter0.eq(Cat(data0, data0)),
-                core.sink.converter1.eq(Cat(data1, data1)),
-                core.sink.converter2.eq(Cat(data2, data2)),
-                core.sink.converter3.eq(Cat(data3, data3))
-            ]
-
-        jesd_dac0_phy0_counter = Signal(32)
-        self.sync.dac0_core_phy0_tx += jesd_dac0_phy0_counter.eq(jesd_dac0_phy0_counter + 1)
-        self.comb += platform.request("user_led", 0).eq(jesd_dac0_phy0_counter[26])
-        self.comb += platform.request("user_led", 1).eq(self.dac0_core.jsync)
-
-        jesd_dac1_phy0_counter = Signal(32)
-        self.sync.dac1_core_phy0_tx += jesd_dac1_phy0_counter.eq(jesd_dac1_phy0_counter + 1)
-        self.comb += platform.request("user_led", 2).eq(jesd_dac1_phy0_counter[26])
-        self.comb += platform.request("user_led", 3).eq(self.dac1_core.jsync)
 
     def do_exit(self, vns):
         pass
