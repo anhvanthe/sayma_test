@@ -73,11 +73,8 @@ module jesd204_phy_0_example_design #(
   output  [1:0]         s_axi_rresp,
   output                s_axi_rvalid,
   input                 s_axi_rready,
-  input                 core_clk_tx_p,           // TX Clock
-  input                 core_clk_tx_n,           //
 
-  input                 core_clk_rx_p,           // RX Clock
-  input                 core_clk_rx_n,           //
+  input [3:0]           prbs_config,
 
   input                 drpclk_in,
   input                 refclk_common_p,
@@ -261,7 +258,7 @@ jesd204_phy_0 jesd204_phy_0_support_block_i(
 
 
   // PRBS mode
-  .gt_prbssel                          (4'd0                          ),
+  .gt_prbssel                          (prbs_config                   ),
   .rxencommaalign                      (rxencommaalign                ),
 
   .gt0_txdata                          (gt0_txdata                    ),

@@ -81,6 +81,48 @@ module jesd204_phy_0_transDbgCtrl_async #(
    output reg  [4:0]                      txprecursor_1 = 0,
    output reg  [2:0]                      loopback_1 = 0,
 
+   // IO for bank 2 
+   output reg  [1:0]                      rx_pd_2 = 0,
+   output reg                             cpll_pd_2 = 1,
+   output reg  [4:0]                      txpostcursor_2 = 0,
+   output reg  [4:0]                      txprecursor_2 = 0,
+   output reg  [2:0]                      loopback_2 = 0,
+
+   // IO for bank 3 
+   output reg  [1:0]                      rx_pd_3 = 0,
+   output reg                             cpll_pd_3 = 1,
+   output reg  [4:0]                      txpostcursor_3 = 0,
+   output reg  [4:0]                      txprecursor_3 = 0,
+   output reg  [2:0]                      loopback_3 = 0,
+
+   // IO for bank 4 
+   output reg  [1:0]                      rx_pd_4 = 0,
+   output reg                             cpll_pd_4 = 1,
+   output reg  [4:0]                      txpostcursor_4 = 0,
+   output reg  [4:0]                      txprecursor_4 = 0,
+   output reg  [2:0]                      loopback_4 = 0,
+
+   // IO for bank 5 
+   output reg  [1:0]                      rx_pd_5 = 0,
+   output reg                             cpll_pd_5 = 1,
+   output reg  [4:0]                      txpostcursor_5 = 0,
+   output reg  [4:0]                      txprecursor_5 = 0,
+   output reg  [2:0]                      loopback_5 = 0,
+
+   // IO for bank 6 
+   output reg  [1:0]                      rx_pd_6 = 0,
+   output reg                             cpll_pd_6 = 1,
+   output reg  [4:0]                      txpostcursor_6 = 0,
+   output reg  [4:0]                      txprecursor_6 = 0,
+   output reg  [2:0]                      loopback_6 = 0,
+
+   // IO for bank 7 
+   output reg  [1:0]                      rx_pd_7 = 0,
+   output reg                             cpll_pd_7 = 1,
+   output reg  [4:0]                      txpostcursor_7 = 0,
+   output reg  [4:0]                      txprecursor_7 = 0,
+   output reg  [2:0]                      loopback_7 = 0,
+
  
    // basic register interface
    input                                  slv_rden,
@@ -122,6 +164,42 @@ module jesd204_phy_0_transDbgCtrl_async #(
         txpostcursor_1                 <= 5'd0;
         txprecursor_1                  <= 5'd0;
         loopback_1                     <= 3'd0;
+
+        rx_pd_2                        <= 2'd0;
+        cpll_pd_2                      <= 1'd1;
+        txpostcursor_2                 <= 5'd0;
+        txprecursor_2                  <= 5'd0;
+        loopback_2                     <= 3'd0;
+
+        rx_pd_3                        <= 2'd0;
+        cpll_pd_3                      <= 1'd1;
+        txpostcursor_3                 <= 5'd0;
+        txprecursor_3                  <= 5'd0;
+        loopback_3                     <= 3'd0;
+
+        rx_pd_4                        <= 2'd0;
+        cpll_pd_4                      <= 1'd1;
+        txpostcursor_4                 <= 5'd0;
+        txprecursor_4                  <= 5'd0;
+        loopback_4                     <= 3'd0;
+
+        rx_pd_5                        <= 2'd0;
+        cpll_pd_5                      <= 1'd1;
+        txpostcursor_5                 <= 5'd0;
+        txprecursor_5                  <= 5'd0;
+        loopback_5                     <= 3'd0;
+
+        rx_pd_6                        <= 2'd0;
+        cpll_pd_6                      <= 1'd1;
+        txpostcursor_6                 <= 5'd0;
+        txprecursor_6                  <= 5'd0;
+        loopback_6                     <= 3'd0;
+
+        rx_pd_7                        <= 2'd0;
+        cpll_pd_7                      <= 1'd1;
+        txpostcursor_7                 <= 5'd0;
+        txprecursor_7                  <= 5'd0;
+        loopback_7                     <= 3'd0;
 
  
       end 
@@ -196,6 +274,216 @@ module jesd204_phy_0_transDbgCtrl_async #(
                       cpll_cal_per                   <= slv_wdata[17:0];
                       end
             'h2d    : begin // @ address = 0x34
+                      cpll_cal_tol                   <= slv_wdata[17:0];
+                      end
+
+            // WRITE assignments for signal block 2
+            'h41    : begin // @ address = 0x04
+                      rx_pd_2                        <= slv_wdata[1:0];
+                      end
+            'h42    : begin // @ address = 0x08
+                      cpll_pd_2                      <= slv_wdata[0];
+                      end
+            'h43    : begin // @ address = 0x0C
+                      txpllclksel                    <= slv_wdata[1:0];
+                      end
+            'h44    : begin // @ address = 0x10
+                      rxpllclksel                    <= slv_wdata[1:0];
+                      end
+            'h45    : begin // @ address = 0x14
+                      txpostcursor_2                 <= slv_wdata[4:0];
+                      end
+            'h46    : begin // @ address = 0x18
+                      txprecursor_2                  <= slv_wdata[4:0];
+                      end
+            'h47    : begin // @ address = 0x1C
+                      loopback_2                     <= slv_wdata[2:0];
+                      end
+            'h48    : begin // @ address = 0x20
+                      tx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'h49    : begin // @ address = 0x24
+                      rx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'h4c    : begin // @ address = 0x30
+                      cpll_cal_per                   <= slv_wdata[17:0];
+                      end
+            'h4d    : begin // @ address = 0x34
+                      cpll_cal_tol                   <= slv_wdata[17:0];
+                      end
+
+            // WRITE assignments for signal block 3
+            'h61    : begin // @ address = 0x04
+                      rx_pd_3                        <= slv_wdata[1:0];
+                      end
+            'h62    : begin // @ address = 0x08
+                      cpll_pd_3                      <= slv_wdata[0];
+                      end
+            'h63    : begin // @ address = 0x0C
+                      txpllclksel                    <= slv_wdata[1:0];
+                      end
+            'h64    : begin // @ address = 0x10
+                      rxpllclksel                    <= slv_wdata[1:0];
+                      end
+            'h65    : begin // @ address = 0x14
+                      txpostcursor_3                 <= slv_wdata[4:0];
+                      end
+            'h66    : begin // @ address = 0x18
+                      txprecursor_3                  <= slv_wdata[4:0];
+                      end
+            'h67    : begin // @ address = 0x1C
+                      loopback_3                     <= slv_wdata[2:0];
+                      end
+            'h68    : begin // @ address = 0x20
+                      tx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'h69    : begin // @ address = 0x24
+                      rx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'h6c    : begin // @ address = 0x30
+                      cpll_cal_per                   <= slv_wdata[17:0];
+                      end
+            'h6d    : begin // @ address = 0x34
+                      cpll_cal_tol                   <= slv_wdata[17:0];
+                      end
+
+            // WRITE assignments for signal block 4
+            'h81    : begin // @ address = 0x04
+                      rx_pd_4                        <= slv_wdata[1:0];
+                      end
+            'h82    : begin // @ address = 0x08
+                      cpll_pd_4                      <= slv_wdata[0];
+                      end
+            'h83    : begin // @ address = 0x0C
+                      txpllclksel                    <= slv_wdata[1:0];
+                      end
+            'h84    : begin // @ address = 0x10
+                      rxpllclksel                    <= slv_wdata[1:0];
+                      end
+            'h85    : begin // @ address = 0x14
+                      txpostcursor_4                 <= slv_wdata[4:0];
+                      end
+            'h86    : begin // @ address = 0x18
+                      txprecursor_4                  <= slv_wdata[4:0];
+                      end
+            'h87    : begin // @ address = 0x1C
+                      loopback_4                     <= slv_wdata[2:0];
+                      end
+            'h88    : begin // @ address = 0x20
+                      tx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'h89    : begin // @ address = 0x24
+                      rx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'h8c    : begin // @ address = 0x30
+                      cpll_cal_per                   <= slv_wdata[17:0];
+                      end
+            'h8d    : begin // @ address = 0x34
+                      cpll_cal_tol                   <= slv_wdata[17:0];
+                      end
+
+            // WRITE assignments for signal block 5
+            'ha1    : begin // @ address = 0x04
+                      rx_pd_5                        <= slv_wdata[1:0];
+                      end
+            'ha2    : begin // @ address = 0x08
+                      cpll_pd_5                      <= slv_wdata[0];
+                      end
+            'ha3    : begin // @ address = 0x0C
+                      txpllclksel                    <= slv_wdata[1:0];
+                      end
+            'ha4    : begin // @ address = 0x10
+                      rxpllclksel                    <= slv_wdata[1:0];
+                      end
+            'ha5    : begin // @ address = 0x14
+                      txpostcursor_5                 <= slv_wdata[4:0];
+                      end
+            'ha6    : begin // @ address = 0x18
+                      txprecursor_5                  <= slv_wdata[4:0];
+                      end
+            'ha7    : begin // @ address = 0x1C
+                      loopback_5                     <= slv_wdata[2:0];
+                      end
+            'ha8    : begin // @ address = 0x20
+                      tx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'ha9    : begin // @ address = 0x24
+                      rx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'hac    : begin // @ address = 0x30
+                      cpll_cal_per                   <= slv_wdata[17:0];
+                      end
+            'had    : begin // @ address = 0x34
+                      cpll_cal_tol                   <= slv_wdata[17:0];
+                      end
+
+            // WRITE assignments for signal block 6
+            'hc1    : begin // @ address = 0x04
+                      rx_pd_6                        <= slv_wdata[1:0];
+                      end
+            'hc2    : begin // @ address = 0x08
+                      cpll_pd_6                      <= slv_wdata[0];
+                      end
+            'hc3    : begin // @ address = 0x0C
+                      txpllclksel                    <= slv_wdata[1:0];
+                      end
+            'hc4    : begin // @ address = 0x10
+                      rxpllclksel                    <= slv_wdata[1:0];
+                      end
+            'hc5    : begin // @ address = 0x14
+                      txpostcursor_6                 <= slv_wdata[4:0];
+                      end
+            'hc6    : begin // @ address = 0x18
+                      txprecursor_6                  <= slv_wdata[4:0];
+                      end
+            'hc7    : begin // @ address = 0x1C
+                      loopback_6                     <= slv_wdata[2:0];
+                      end
+            'hc8    : begin // @ address = 0x20
+                      tx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'hc9    : begin // @ address = 0x24
+                      rx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'hcc    : begin // @ address = 0x30
+                      cpll_cal_per                   <= slv_wdata[17:0];
+                      end
+            'hcd    : begin // @ address = 0x34
+                      cpll_cal_tol                   <= slv_wdata[17:0];
+                      end
+
+            // WRITE assignments for signal block 7
+            'he1    : begin // @ address = 0x04
+                      rx_pd_7                        <= slv_wdata[1:0];
+                      end
+            'he2    : begin // @ address = 0x08
+                      cpll_pd_7                      <= slv_wdata[0];
+                      end
+            'he3    : begin // @ address = 0x0C
+                      txpllclksel                    <= slv_wdata[1:0];
+                      end
+            'he4    : begin // @ address = 0x10
+                      rxpllclksel                    <= slv_wdata[1:0];
+                      end
+            'he5    : begin // @ address = 0x14
+                      txpostcursor_7                 <= slv_wdata[4:0];
+                      end
+            'he6    : begin // @ address = 0x18
+                      txprecursor_7                  <= slv_wdata[4:0];
+                      end
+            'he7    : begin // @ address = 0x1C
+                      loopback_7                     <= slv_wdata[2:0];
+                      end
+            'he8    : begin // @ address = 0x20
+                      tx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'he9    : begin // @ address = 0x24
+                      rx_sys_reset_axi               <= slv_wdata[0];
+                      end
+            'hec    : begin // @ address = 0x30
+                      cpll_cal_per                   <= slv_wdata[17:0];
+                      end
+            'hed    : begin // @ address = 0x34
                       cpll_cal_tol                   <= slv_wdata[17:0];
                       end
 
@@ -284,6 +572,234 @@ module jesd204_phy_0_transDbgCtrl_async #(
                slv_rdata[17:0]      = cpll_cal_per;
                end
      'h2d    : begin // @ address = 0x34
+               slv_rdata[17:0]      = cpll_cal_tol;
+               end
+
+     // READ assignments for signal block 2
+     'h40    : begin // @ address = 0x00
+               slv_rdata[7:0]       = 'd0; // gt_interface_sel is an external select
+               end
+     'h41    : begin // @ address = 0x04
+               slv_rdata[1:0]       = rx_pd_2;
+               end
+     'h42    : begin // @ address = 0x08
+               slv_rdata[0]         = cpll_pd_2;
+               end
+     'h43    : begin // @ address = 0x0C
+               slv_rdata[1:0]       = txpllclksel;
+               end
+     'h44    : begin // @ address = 0x10
+               slv_rdata[1:0]       = rxpllclksel;
+               end
+     'h45    : begin // @ address = 0x14
+               slv_rdata[4:0]       = txpostcursor_2;
+               end
+     'h46    : begin // @ address = 0x18
+               slv_rdata[4:0]       = txprecursor_2;
+               end
+     'h47    : begin // @ address = 0x1C
+               slv_rdata[2:0]       = loopback_2;
+               end
+     'h48    : begin // @ address = 0x20
+               slv_rdata[0]         = tx_sys_reset_axi;
+               end
+     'h49    : begin // @ address = 0x24
+               slv_rdata[0]         = rx_sys_reset_axi;
+               end
+     'h4c    : begin // @ address = 0x30
+               slv_rdata[17:0]      = cpll_cal_per;
+               end
+     'h4d    : begin // @ address = 0x34
+               slv_rdata[17:0]      = cpll_cal_tol;
+               end
+
+     // READ assignments for signal block 3
+     'h60    : begin // @ address = 0x00
+               slv_rdata[7:0]       = 'd0; // gt_interface_sel is an external select
+               end
+     'h61    : begin // @ address = 0x04
+               slv_rdata[1:0]       = rx_pd_3;
+               end
+     'h62    : begin // @ address = 0x08
+               slv_rdata[0]         = cpll_pd_3;
+               end
+     'h63    : begin // @ address = 0x0C
+               slv_rdata[1:0]       = txpllclksel;
+               end
+     'h64    : begin // @ address = 0x10
+               slv_rdata[1:0]       = rxpllclksel;
+               end
+     'h65    : begin // @ address = 0x14
+               slv_rdata[4:0]       = txpostcursor_3;
+               end
+     'h66    : begin // @ address = 0x18
+               slv_rdata[4:0]       = txprecursor_3;
+               end
+     'h67    : begin // @ address = 0x1C
+               slv_rdata[2:0]       = loopback_3;
+               end
+     'h68    : begin // @ address = 0x20
+               slv_rdata[0]         = tx_sys_reset_axi;
+               end
+     'h69    : begin // @ address = 0x24
+               slv_rdata[0]         = rx_sys_reset_axi;
+               end
+     'h6c    : begin // @ address = 0x30
+               slv_rdata[17:0]      = cpll_cal_per;
+               end
+     'h6d    : begin // @ address = 0x34
+               slv_rdata[17:0]      = cpll_cal_tol;
+               end
+
+     // READ assignments for signal block 4
+     'h80    : begin // @ address = 0x00
+               slv_rdata[7:0]       = 'd0; // gt_interface_sel is an external select
+               end
+     'h81    : begin // @ address = 0x04
+               slv_rdata[1:0]       = rx_pd_4;
+               end
+     'h82    : begin // @ address = 0x08
+               slv_rdata[0]         = cpll_pd_4;
+               end
+     'h83    : begin // @ address = 0x0C
+               slv_rdata[1:0]       = txpllclksel;
+               end
+     'h84    : begin // @ address = 0x10
+               slv_rdata[1:0]       = rxpllclksel;
+               end
+     'h85    : begin // @ address = 0x14
+               slv_rdata[4:0]       = txpostcursor_4;
+               end
+     'h86    : begin // @ address = 0x18
+               slv_rdata[4:0]       = txprecursor_4;
+               end
+     'h87    : begin // @ address = 0x1C
+               slv_rdata[2:0]       = loopback_4;
+               end
+     'h88    : begin // @ address = 0x20
+               slv_rdata[0]         = tx_sys_reset_axi;
+               end
+     'h89    : begin // @ address = 0x24
+               slv_rdata[0]         = rx_sys_reset_axi;
+               end
+     'h8c    : begin // @ address = 0x30
+               slv_rdata[17:0]      = cpll_cal_per;
+               end
+     'h8d    : begin // @ address = 0x34
+               slv_rdata[17:0]      = cpll_cal_tol;
+               end
+
+     // READ assignments for signal block 5
+     'ha0    : begin // @ address = 0x00
+               slv_rdata[7:0]       = 'd0; // gt_interface_sel is an external select
+               end
+     'ha1    : begin // @ address = 0x04
+               slv_rdata[1:0]       = rx_pd_5;
+               end
+     'ha2    : begin // @ address = 0x08
+               slv_rdata[0]         = cpll_pd_5;
+               end
+     'ha3    : begin // @ address = 0x0C
+               slv_rdata[1:0]       = txpllclksel;
+               end
+     'ha4    : begin // @ address = 0x10
+               slv_rdata[1:0]       = rxpllclksel;
+               end
+     'ha5    : begin // @ address = 0x14
+               slv_rdata[4:0]       = txpostcursor_5;
+               end
+     'ha6    : begin // @ address = 0x18
+               slv_rdata[4:0]       = txprecursor_5;
+               end
+     'ha7    : begin // @ address = 0x1C
+               slv_rdata[2:0]       = loopback_5;
+               end
+     'ha8    : begin // @ address = 0x20
+               slv_rdata[0]         = tx_sys_reset_axi;
+               end
+     'ha9    : begin // @ address = 0x24
+               slv_rdata[0]         = rx_sys_reset_axi;
+               end
+     'hac    : begin // @ address = 0x30
+               slv_rdata[17:0]      = cpll_cal_per;
+               end
+     'had    : begin // @ address = 0x34
+               slv_rdata[17:0]      = cpll_cal_tol;
+               end
+
+     // READ assignments for signal block 6
+     'hc0    : begin // @ address = 0x00
+               slv_rdata[7:0]       = 'd0; // gt_interface_sel is an external select
+               end
+     'hc1    : begin // @ address = 0x04
+               slv_rdata[1:0]       = rx_pd_6;
+               end
+     'hc2    : begin // @ address = 0x08
+               slv_rdata[0]         = cpll_pd_6;
+               end
+     'hc3    : begin // @ address = 0x0C
+               slv_rdata[1:0]       = txpllclksel;
+               end
+     'hc4    : begin // @ address = 0x10
+               slv_rdata[1:0]       = rxpllclksel;
+               end
+     'hc5    : begin // @ address = 0x14
+               slv_rdata[4:0]       = txpostcursor_6;
+               end
+     'hc6    : begin // @ address = 0x18
+               slv_rdata[4:0]       = txprecursor_6;
+               end
+     'hc7    : begin // @ address = 0x1C
+               slv_rdata[2:0]       = loopback_6;
+               end
+     'hc8    : begin // @ address = 0x20
+               slv_rdata[0]         = tx_sys_reset_axi;
+               end
+     'hc9    : begin // @ address = 0x24
+               slv_rdata[0]         = rx_sys_reset_axi;
+               end
+     'hcc    : begin // @ address = 0x30
+               slv_rdata[17:0]      = cpll_cal_per;
+               end
+     'hcd    : begin // @ address = 0x34
+               slv_rdata[17:0]      = cpll_cal_tol;
+               end
+
+     // READ assignments for signal block 7
+     'he0    : begin // @ address = 0x00
+               slv_rdata[7:0]       = 'd0; // gt_interface_sel is an external select
+               end
+     'he1    : begin // @ address = 0x04
+               slv_rdata[1:0]       = rx_pd_7;
+               end
+     'he2    : begin // @ address = 0x08
+               slv_rdata[0]         = cpll_pd_7;
+               end
+     'he3    : begin // @ address = 0x0C
+               slv_rdata[1:0]       = txpllclksel;
+               end
+     'he4    : begin // @ address = 0x10
+               slv_rdata[1:0]       = rxpllclksel;
+               end
+     'he5    : begin // @ address = 0x14
+               slv_rdata[4:0]       = txpostcursor_7;
+               end
+     'he6    : begin // @ address = 0x18
+               slv_rdata[4:0]       = txprecursor_7;
+               end
+     'he7    : begin // @ address = 0x1C
+               slv_rdata[2:0]       = loopback_7;
+               end
+     'he8    : begin // @ address = 0x20
+               slv_rdata[0]         = tx_sys_reset_axi;
+               end
+     'he9    : begin // @ address = 0x24
+               slv_rdata[0]         = rx_sys_reset_axi;
+               end
+     'hec    : begin // @ address = 0x30
+               slv_rdata[17:0]      = cpll_cal_per;
+               end
+     'hed    : begin // @ address = 0x34
                slv_rdata[17:0]      = cpll_cal_tol;
                end
 

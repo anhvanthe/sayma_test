@@ -45,7 +45,7 @@
 
 `timescale 1ns / 1ps
 
-(* CORE_GENERATION_INFO = "jesd204_phy_0,jesd204_phy_v3_4_0,{x_ipProduct=Vivado 2017.2,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=jesd204_phy,x_ipVersion=3.4,x_ipCoreRevision=0,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_COMPONENT_NAME=jesd204_phy_0,C_FAMILY=kintexu,C_SILICON_REVISION=,C_LANES=2,C_SPEEDGRADE=-2,C_SupportLevel=1,C_TransceiverControl=false,c_sub_core_name=jesd204_phy_0_gt,C_GT_Line_Rate=5.0,C_GT_REFCLK_FREQ=125,C_DRPCLK_FREQ=100.0,C_PLL_SELECTION=1,C_RX_GT_Line_Rate=5.0,C_RX_GT_REFCLK_FREQ=125,C_RX_PLL_SELECTION=1,C_QPLL_FBDIV=40,C_QPLL_REFCLKDIV=1,C_PLL0_FBDIV=1,C_PLL0_FBDIV_45=4,C_PLL0_REFCLKDIV=1,C_PLL1_FBDIV=1,C_PLL1_FBDIV_45=4,C_PLL1_REFCLKDIV=1,C_Axi_Lite=true,C_AXICLK_FREQ=100.0,C_Transceiver=GTHE3,C_GT_Loc=X0Y0,C_gt_val_extended_timeout=false,C_Tx_use_64b=0,C_Rx_use_64b=0,C_CHANNEL_POS=0,C_QUADS=1,C_Equalization_Mode=0,C_Rx_MasterChan=1,C_Tx_MasterChan=1,C_Ins_Loss=12,C_Config_Type=0,C_Min_Line_Rate=5.0,C_Max_Line_Rate=5.0,C_GT_ENUM=5}" *)
+(* CORE_GENERATION_INFO = "jesd204_phy_0,jesd204_phy_v3_4_0,{x_ipProduct=Vivado 2017.2,x_ipVendor=xilinx.com,x_ipLibrary=ip,x_ipName=jesd204_phy,x_ipVersion=3.4,x_ipCoreRevision=0,x_ipLanguage=VERILOG,x_ipSimLanguage=MIXED,C_COMPONENT_NAME=jesd204_phy_0,C_FAMILY=kintexu,C_SILICON_REVISION=,C_LANES=8,C_SPEEDGRADE=-2,C_SupportLevel=1,C_TransceiverControl=false,c_sub_core_name=jesd204_phy_0_gt,C_GT_Line_Rate=5.0,C_GT_REFCLK_FREQ=125,C_DRPCLK_FREQ=100.0,C_PLL_SELECTION=1,C_RX_GT_Line_Rate=5.0,C_RX_GT_REFCLK_FREQ=125,C_RX_PLL_SELECTION=1,C_QPLL_FBDIV=40,C_QPLL_REFCLKDIV=1,C_PLL0_FBDIV=1,C_PLL0_FBDIV_45=4,C_PLL0_REFCLKDIV=1,C_PLL1_FBDIV=1,C_PLL1_FBDIV_45=4,C_PLL1_REFCLKDIV=1,C_Axi_Lite=true,C_AXICLK_FREQ=100.0,C_Transceiver=GTHE3,C_GT_Loc=X0Y0,C_gt_val_extended_timeout=false,C_Tx_use_64b=0,C_Rx_use_64b=0,C_CHANNEL_POS=0,C_QUADS=2,C_Equalization_Mode=0,C_Rx_MasterChan=1,C_Tx_MasterChan=1,C_Ins_Loss=12,C_Config_Type=0,C_Min_Line_Rate=5.0,C_Max_Line_Rate=5.0,C_GT_ENUM=5}" *)
 (* X_CORE_INFO = "jesd204_phy_v3_4_0,Vivado 2017.2" *)
 
 //***********************************Entity Declaration************************
@@ -95,10 +95,18 @@ module jesd204_phy_0 (
   output         common0_qpll0_refclk_out,
   output         common0_qpll0_clk_out,
 
+  output         common1_qpll0_lock_out,
+  output         common1_qpll0_refclk_out,
+  output         common1_qpll0_clk_out,
+
   input          qpll1_refclk,
   output         common0_qpll1_lock_out,
   output         common0_qpll1_refclk_out,
   output         common0_qpll1_clk_out,
+
+  output         common1_qpll1_lock_out,
+  output         common1_qpll1_refclk_out,
+  output         common1_qpll1_clk_out,
 
   input          rxencommaalign,
 
@@ -123,6 +131,30 @@ module jesd204_phy_0 (
   input  [31:0]  gt1_txdata,
   input  [3:0]   gt1_txcharisk,
 
+  // Lane 2
+  input  [31:0]  gt2_txdata,
+  input  [3:0]   gt2_txcharisk,
+
+  // Lane 3
+  input  [31:0]  gt3_txdata,
+  input  [3:0]   gt3_txcharisk,
+
+  // Lane 4
+  input  [31:0]  gt4_txdata,
+  input  [3:0]   gt4_txcharisk,
+
+  // Lane 5
+  input  [31:0]  gt5_txdata,
+  input  [3:0]   gt5_txcharisk,
+
+  // Lane 6
+  input  [31:0]  gt6_txdata,
+  input  [3:0]   gt6_txcharisk,
+
+  // Lane 7
+  input  [31:0]  gt7_txdata,
+  input  [3:0]   gt7_txcharisk,
+
   // Rx Ports
   // Lane 0
   output [31:0]  gt0_rxdata,
@@ -136,11 +168,47 @@ module jesd204_phy_0 (
   output [3:0]   gt1_rxdisperr,
   output [3:0]   gt1_rxnotintable,
 
+  // Lane 2
+  output [31:0]  gt2_rxdata,
+  output [3:0]   gt2_rxcharisk,
+  output [3:0]   gt2_rxdisperr,
+  output [3:0]   gt2_rxnotintable,
+
+  // Lane 3
+  output [31:0]  gt3_rxdata,
+  output [3:0]   gt3_rxcharisk,
+  output [3:0]   gt3_rxdisperr,
+  output [3:0]   gt3_rxnotintable,
+
+  // Lane 4
+  output [31:0]  gt4_rxdata,
+  output [3:0]   gt4_rxcharisk,
+  output [3:0]   gt4_rxdisperr,
+  output [3:0]   gt4_rxnotintable,
+
+  // Lane 5
+  output [31:0]  gt5_rxdata,
+  output [3:0]   gt5_rxcharisk,
+  output [3:0]   gt5_rxdisperr,
+  output [3:0]   gt5_rxnotintable,
+
+  // Lane 6
+  output [31:0]  gt6_rxdata,
+  output [3:0]   gt6_rxcharisk,
+  output [3:0]   gt6_rxdisperr,
+  output [3:0]   gt6_rxnotintable,
+
+  // Lane 7
+  output [31:0]  gt7_rxdata,
+  output [3:0]   gt7_rxcharisk,
+  output [3:0]   gt7_rxdisperr,
+  output [3:0]   gt7_rxnotintable,
+
   // Serial ports
-  input  [1:0]   rxn_in,
-  input  [1:0]   rxp_in,
-  output [1:0]   txn_out,
-  output [1:0]   txp_out
+  input  [7:0]   rxn_in,
+  input  [7:0]   rxp_in,
+  output [7:0]   txn_out,
+  output [7:0]   txp_out
 );
 
 //------------------------------------------------------------
@@ -179,20 +247,20 @@ inst(
   // CPLL Lock
   .gt_cplllock                         (                              ),
 
-  .gt_txprbsforceerr                   (2'b0                          ),
+  .gt_txprbsforceerr                   (8'b0                          ),
 
-  .gt_rxprbssel                        (8'b0                          ),
-  .gt_rxprbscntreset                   (2'b0                          ),
+  .gt_rxprbssel                        (32'b0                         ),
+  .gt_rxprbscntreset                   (8'b0                          ),
   .gt_rxprbserr                        (                              ),
 
   // TX Reset and Initialization
-  .gt_txpcsreset                       (2'b0                          ),
-  .gt_txpmareset                       (2'b0                          ),
+  .gt_txpcsreset                       (8'b0                          ),
+  .gt_txpmareset                       (8'b0                          ),
 
   // RX Reset and Initialization
-  .gt_rxpcsreset                       (2'b0                          ),
-  .gt_rxpmareset                       (2'b0                          ),
-  .gt_rxbufreset                       (2'b0                          ),
+  .gt_rxpcsreset                       (8'b0                          ),
+  .gt_rxpmareset                       (8'b0                          ),
+  .gt_rxbufreset                       (8'b0                          ),
   .gt_rxpmaresetdone                   (                              ),
 
   // TX Buffer Ports
@@ -202,15 +270,15 @@ inst(
   .gt_rxbufstatus                      (                              ),
 
   // PCI Express Ports
-  .gt_rxrate                           (6'b0                          ),
+  .gt_rxrate                           (24'b0                         ),
 
   // RX Margin Analysis Ports
-  .gt_eyescantrigger                   (2'b0                          ),
-  .gt_eyescanreset                     (2'b0                          ),
+  .gt_eyescantrigger                   (8'b0                          ),
+  .gt_eyescanreset                     (8'b0                          ),
   .gt_eyescandataerror                 (                              ),
 
   // RX CDR Ports
-  .gt_rxcdrhold                        (2'b0                          ),
+  .gt_rxcdrhold                        (8'b0                          ),
 
   // RX Digital Monitor Ports
   .gt_dmonitorout                      (                              ),
@@ -246,6 +314,14 @@ inst(
   .common0_qpll1_refclk_out            (common0_qpll1_refclk_out      ),
   .common0_qpll1_clk_out               (common0_qpll1_clk_out         ),
 
+  .common1_qpll0_lock_out              (common1_qpll0_lock_out        ),
+  .common1_qpll0_refclk_out            (common1_qpll0_refclk_out      ),
+  .common1_qpll0_clk_out               (common1_qpll0_clk_out         ),
+
+  .common1_qpll1_lock_out              (common1_qpll1_lock_out        ),
+  .common1_qpll1_refclk_out            (common1_qpll1_refclk_out      ),
+  .common1_qpll1_clk_out               (common1_qpll1_clk_out         ),
+
   .rxencommaalign                      (rxencommaalign                ),
 
   // Clocks
@@ -268,6 +344,30 @@ inst(
   .gt1_txdata                          (gt1_txdata                    ),
   .gt1_txcharisk                       (gt1_txcharisk                 ),
 
+  // Lane 2
+  .gt2_txdata                          (gt2_txdata                    ),
+  .gt2_txcharisk                       (gt2_txcharisk                 ),
+
+  // Lane 3
+  .gt3_txdata                          (gt3_txdata                    ),
+  .gt3_txcharisk                       (gt3_txcharisk                 ),
+
+  // Lane 4
+  .gt4_txdata                          (gt4_txdata                    ),
+  .gt4_txcharisk                       (gt4_txcharisk                 ),
+
+  // Lane 5
+  .gt5_txdata                          (gt5_txdata                    ),
+  .gt5_txcharisk                       (gt5_txcharisk                 ),
+
+  // Lane 6
+  .gt6_txdata                          (gt6_txdata                    ),
+  .gt6_txcharisk                       (gt6_txcharisk                 ),
+
+  // Lane 7
+  .gt7_txdata                          (gt7_txdata                    ),
+  .gt7_txcharisk                       (gt7_txcharisk                 ),
+
   // Rx Ports
   // Lane 0
   .gt0_rxdata                          (gt0_rxdata                    ),
@@ -280,6 +380,42 @@ inst(
   .gt1_rxcharisk                       (gt1_rxcharisk                 ),
   .gt1_rxdisperr                       (gt1_rxdisperr                 ),
   .gt1_rxnotintable                    (gt1_rxnotintable              ),
+
+  // Lane 2
+  .gt2_rxdata                          (gt2_rxdata                    ),
+  .gt2_rxcharisk                       (gt2_rxcharisk                 ),
+  .gt2_rxdisperr                       (gt2_rxdisperr                 ),
+  .gt2_rxnotintable                    (gt2_rxnotintable              ),
+
+  // Lane 3
+  .gt3_rxdata                          (gt3_rxdata                    ),
+  .gt3_rxcharisk                       (gt3_rxcharisk                 ),
+  .gt3_rxdisperr                       (gt3_rxdisperr                 ),
+  .gt3_rxnotintable                    (gt3_rxnotintable              ),
+
+  // Lane 4
+  .gt4_rxdata                          (gt4_rxdata                    ),
+  .gt4_rxcharisk                       (gt4_rxcharisk                 ),
+  .gt4_rxdisperr                       (gt4_rxdisperr                 ),
+  .gt4_rxnotintable                    (gt4_rxnotintable              ),
+
+  // Lane 5
+  .gt5_rxdata                          (gt5_rxdata                    ),
+  .gt5_rxcharisk                       (gt5_rxcharisk                 ),
+  .gt5_rxdisperr                       (gt5_rxdisperr                 ),
+  .gt5_rxnotintable                    (gt5_rxnotintable              ),
+
+  // Lane 6
+  .gt6_rxdata                          (gt6_rxdata                    ),
+  .gt6_rxcharisk                       (gt6_rxcharisk                 ),
+  .gt6_rxdisperr                       (gt6_rxdisperr                 ),
+  .gt6_rxnotintable                    (gt6_rxnotintable              ),
+
+  // Lane 7
+  .gt7_rxdata                          (gt7_rxdata                    ),
+  .gt7_rxcharisk                       (gt7_rxcharisk                 ),
+  .gt7_rxdisperr                       (gt7_rxdisperr                 ),
+  .gt7_rxnotintable                    (gt7_rxnotintable              ),
 
   // Serial ports
   .rxn_in                              (rxn_in                        ),

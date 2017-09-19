@@ -75,52 +75,52 @@ module jesd204_phy_0_support (
 
   // Additional GT signals for debug
   // CPLL Lock
-  output [1:0]         gt_cplllock,
+  output [7:0]         gt_cplllock,
 
   // Reset Done for each GT Channel
-  output [1:0]         gt_txresetdone,
-  output [1:0]         gt_rxresetdone,
+  output [7:0]         gt_txresetdone,
+  output [7:0]         gt_rxresetdone,
 
   // Pattern Checker ports
-  input  [1:0]         gt_txprbsforceerr,
+  input  [7:0]         gt_txprbsforceerr,
 
-  input  [7:0]       gt_rxprbssel,
-  input  [1:0]         gt_rxprbscntreset,
-  output [1:0]         gt_rxprbserr,
+  input  [31:0]       gt_rxprbssel,
+  input  [7:0]         gt_rxprbscntreset,
+  output [7:0]         gt_rxprbserr,
 
   // RX Margin Analysis Ports
-  input   [1:0]        gt_eyescantrigger,
-  input   [1:0]        gt_eyescanreset,
-  output  [1:0]        gt_eyescandataerror,
+  input   [7:0]        gt_eyescantrigger,
+  input   [7:0]        gt_eyescanreset,
+  output  [7:0]        gt_eyescandataerror,
 
   // TX Reset and Initialization
-  input   [1:0]        gt_txpmareset,
-  input   [1:0]        gt_txpcsreset,
+  input   [7:0]        gt_txpmareset,
+  input   [7:0]        gt_txpcsreset,
 
   // TX Buffer Ports
-  output  [3:0]       gt_txbufstatus,
+  output  [15:0]       gt_txbufstatus,
 
   // RX Reset and Initialization
-  input   [1:0]        gt_rxpmareset,
-  input   [1:0]        gt_rxpcsreset,
-  input   [1:0]        gt_rxbufreset,
-  output  [1:0]        gt_rxpmaresetdone,
+  input   [7:0]        gt_rxpmareset,
+  input   [7:0]        gt_rxpcsreset,
+  input   [7:0]        gt_rxbufreset,
+  output  [7:0]        gt_rxpmaresetdone,
 
   // RX CDR Ports
-  input   [1:0]        gt_rxcdrhold,
+  input   [7:0]        gt_rxcdrhold,
 
   
   // RX Byte and Word Alignment Ports
-  output  [1:0]        gt_rxcommadet,
+  output  [7:0]        gt_rxcommadet,
   
   // RX Buffer Ports
-  output  [5:0]        gt_rxbufstatus,
+  output  [23:0]        gt_rxbufstatus,
 
   // PCI Express Ports
-  input  [5:0]         gt_rxrate,
+  input  [23:0]         gt_rxrate,
 
   // RX Digital Monitor Ports
-  output [33:0]       gt_dmonitorout,
+  output [135:0]       gt_dmonitorout,
 
   // System Reset Inputs for each direction
   input               tx_sys_reset,
@@ -142,11 +142,17 @@ module jesd204_phy_0_support (
   output              common0_qpll0_lock_out,
   output              common0_qpll0_refclk_out,
   output              common0_qpll0_clk_out,
+  output              common1_qpll0_lock_out,
+  output              common1_qpll0_refclk_out,
+  output              common1_qpll0_clk_out,
   // GT Common 1 I/O
   input               qpll1_refclk,
   output              common0_qpll1_lock_out,
   output              common0_qpll1_refclk_out,
   output              common0_qpll1_clk_out,
+  output              common1_qpll1_lock_out,
+  output              common1_qpll1_refclk_out,
+  output              common1_qpll1_clk_out,
  
   input               rxencommaalign,
   
@@ -172,6 +178,30 @@ module jesd204_phy_0_support (
   input    [31:0]     gt1_txdata,
   input     [3:0]     gt1_txcharisk,
   
+  // Lane 2
+  input    [31:0]     gt2_txdata,
+  input     [3:0]     gt2_txcharisk,
+  
+  // Lane 3
+  input    [31:0]     gt3_txdata,
+  input     [3:0]     gt3_txcharisk,
+  
+  // Lane 4
+  input    [31:0]     gt4_txdata,
+  input     [3:0]     gt4_txcharisk,
+  
+  // Lane 5
+  input    [31:0]     gt5_txdata,
+  input     [3:0]     gt5_txcharisk,
+  
+  // Lane 6
+  input    [31:0]     gt6_txdata,
+  input     [3:0]     gt6_txcharisk,
+  
+  // Lane 7
+  input    [31:0]     gt7_txdata,
+  input     [3:0]     gt7_txcharisk,
+  
   // Rx Ports
   // Lane 0
   output   [31:0]     gt0_rxdata,
@@ -185,11 +215,47 @@ module jesd204_phy_0_support (
   output    [3:0]     gt1_rxdisperr,
   output    [3:0]     gt1_rxnotintable,  
 
+  // Lane 2
+  output   [31:0]     gt2_rxdata,
+  output    [3:0]     gt2_rxcharisk,
+  output    [3:0]     gt2_rxdisperr,
+  output    [3:0]     gt2_rxnotintable,  
+
+  // Lane 3
+  output   [31:0]     gt3_rxdata,
+  output    [3:0]     gt3_rxcharisk,
+  output    [3:0]     gt3_rxdisperr,
+  output    [3:0]     gt3_rxnotintable,  
+
+  // Lane 4
+  output   [31:0]     gt4_rxdata,
+  output    [3:0]     gt4_rxcharisk,
+  output    [3:0]     gt4_rxdisperr,
+  output    [3:0]     gt4_rxnotintable,  
+
+  // Lane 5
+  output   [31:0]     gt5_rxdata,
+  output    [3:0]     gt5_rxcharisk,
+  output    [3:0]     gt5_rxdisperr,
+  output    [3:0]     gt5_rxnotintable,  
+
+  // Lane 6
+  output   [31:0]     gt6_rxdata,
+  output    [3:0]     gt6_rxcharisk,
+  output    [3:0]     gt6_rxdisperr,
+  output    [3:0]     gt6_rxnotintable,  
+
+  // Lane 7
+  output   [31:0]     gt7_rxdata,
+  output    [3:0]     gt7_rxcharisk,
+  output    [3:0]     gt7_rxdisperr,
+  output    [3:0]     gt7_rxnotintable,  
+
   // Serial ports
-  input      [1:0]    rxn_in,
-  input      [1:0]    rxp_in,
-  output     [1:0]    txn_out,
-  output     [1:0]    txp_out
+  input      [7:0]    rxn_in,
+  input      [7:0]    rxp_in,
+  output     [7:0]    txn_out,
+  output     [7:0]    txp_out
 
 );
 
@@ -200,6 +266,10 @@ module jesd204_phy_0_support (
   wire          common0_qpll0_lock_i;
   wire          common0_qpll0_refclk_i;
   wire          common0_qpll0_clk_i;
+
+  wire          common1_qpll0_lock_i;
+  wire          common1_qpll0_refclk_i;
+  wire          common1_qpll0_clk_i;
 
   wire          qpll0_reset_i;
   wire          qpll1_reset_i;
@@ -212,6 +282,17 @@ module jesd204_phy_0_support (
 
   wire          common0_qpll0_pd;
   wire          common0_qpll1_pd;
+
+  wire  [8:0]   common1_drpaddr;
+  wire  [15:0]  common1_drpdi;
+  wire          common1_drpen;
+  wire          common1_drpwe;
+  wire  [15:0]  common1_drpdo;
+  wire          common1_drprdy;
+
+  wire          common1_qpll0_pd;
+  wire          common1_qpll1_pd;
+
 
   wire          txoutclk_i;
   assign txoutclk  = txoutclk_i;
@@ -284,6 +365,18 @@ jesd204_phy_block_i
   .common0_qpll0_pd        (common0_qpll0_pd),
   .common0_qpll1_pd        (common0_qpll1_pd),
 
+  // Common 1 DRP Ports
+  .common1_drpaddr         (common1_drpaddr),
+  .common1_drpdi           (common1_drpdi),
+  .common1_drpen           (common1_drpen),
+  .common1_drpwe           (common1_drpwe),
+  .common1_drpdo           (common1_drpdo),
+  .common1_drprdy          (common1_drprdy),
+
+  // Common 1 QPLL Power Down Ports
+  .common1_qpll0_pd        (common1_qpll0_pd),
+  .common1_qpll1_pd        (common1_qpll1_pd),
+
   // System Reset Inputs for each direction
   .tx_sys_reset            (tx_sys_reset),
   .rx_sys_reset            (rx_sys_reset),
@@ -306,9 +399,15 @@ jesd204_phy_block_i
   .common0_qpll0_lock_in   (common0_qpll0_lock_i),
   .common0_qpll0_refclk_in (common0_qpll0_refclk_i),
   .common0_qpll0_clk_in    (common0_qpll0_clk_i),
+  .common1_qpll0_lock_in   (common1_qpll0_lock_i),
+  .common1_qpll0_refclk_in (common1_qpll0_refclk_i),
+  .common1_qpll0_clk_in    (common1_qpll0_clk_i),
   .common0_qpll1_lock_in   (common0_qpll1_lock_i),
   .common0_qpll1_refclk_in (common0_qpll1_refclk_i),
   .common0_qpll1_clk_in    (common0_qpll1_clk_i),
+  .common1_qpll1_lock_in   (common1_qpll1_lock_i),
+  .common1_qpll1_refclk_in (common1_qpll1_refclk_i),
+  .common1_qpll1_clk_in    (common1_qpll1_clk_i),
  
   .rxencommaalign          (rxencommaalign),
   
@@ -332,6 +431,30 @@ jesd204_phy_block_i
   .gt1_txdata              (gt1_txdata),
   .gt1_txcharisk           (gt1_txcharisk),
 
+  // Lane 2
+  .gt2_txdata              (gt2_txdata),
+  .gt2_txcharisk           (gt2_txcharisk),
+
+  // Lane 3
+  .gt3_txdata              (gt3_txdata),
+  .gt3_txcharisk           (gt3_txcharisk),
+
+  // Lane 4
+  .gt4_txdata              (gt4_txdata),
+  .gt4_txcharisk           (gt4_txcharisk),
+
+  // Lane 5
+  .gt5_txdata              (gt5_txdata),
+  .gt5_txcharisk           (gt5_txcharisk),
+
+  // Lane 6
+  .gt6_txdata              (gt6_txdata),
+  .gt6_txcharisk           (gt6_txcharisk),
+
+  // Lane 7
+  .gt7_txdata              (gt7_txdata),
+  .gt7_txcharisk           (gt7_txcharisk),
+
   // Rx Ports
   // Lane 0
   .gt0_rxdata              (gt0_rxdata),
@@ -344,6 +467,42 @@ jesd204_phy_block_i
   .gt1_rxcharisk           (gt1_rxcharisk),
   .gt1_rxdisperr           (gt1_rxdisperr),
   .gt1_rxnotintable        (gt1_rxnotintable),
+
+  // Lane 2
+  .gt2_rxdata              (gt2_rxdata),
+  .gt2_rxcharisk           (gt2_rxcharisk),
+  .gt2_rxdisperr           (gt2_rxdisperr),
+  .gt2_rxnotintable        (gt2_rxnotintable),
+
+  // Lane 3
+  .gt3_rxdata              (gt3_rxdata),
+  .gt3_rxcharisk           (gt3_rxcharisk),
+  .gt3_rxdisperr           (gt3_rxdisperr),
+  .gt3_rxnotintable        (gt3_rxnotintable),
+
+  // Lane 4
+  .gt4_rxdata              (gt4_rxdata),
+  .gt4_rxcharisk           (gt4_rxcharisk),
+  .gt4_rxdisperr           (gt4_rxdisperr),
+  .gt4_rxnotintable        (gt4_rxnotintable),
+
+  // Lane 5
+  .gt5_rxdata              (gt5_rxdata),
+  .gt5_rxcharisk           (gt5_rxcharisk),
+  .gt5_rxdisperr           (gt5_rxdisperr),
+  .gt5_rxnotintable        (gt5_rxnotintable),
+
+  // Lane 6
+  .gt6_rxdata              (gt6_rxdata),
+  .gt6_rxcharisk           (gt6_rxcharisk),
+  .gt6_rxdisperr           (gt6_rxdisperr),
+  .gt6_rxnotintable        (gt6_rxnotintable),
+
+  // Lane 7
+  .gt7_rxdata              (gt7_rxdata),
+  .gt7_rxcharisk           (gt7_rxcharisk),
+  .gt7_rxdisperr           (gt7_rxdisperr),
+  .gt7_rxnotintable        (gt7_rxnotintable),
 
 //-----------------------------------------------------------------------------
 // AXI interface for PHYCore
@@ -412,14 +571,49 @@ jesd204_phy_gt_common_0_i
 
   );
 
+jesd204_phy_0_gt_common_wrapper
+jesd204_phy_gt_common_1_i
+  (
+  //DRP Ports
+  .common_drpclk           (drpclk),
+  .common_drpaddr          (common1_drpaddr),
+  .common_drpdi            (common1_drpdi),
+  .common_drpen            (common1_drpen),
+  .common_drpwe            (common1_drpwe),
+  .common_drpdo            (common1_drpdo),
+  .common_drprdy           (common1_drprdy),
+
+  //QPLL0 Ports
+  .common_gtrefclk0        (qpll0_refclk),
+  .common_qpll0_reset      (qpll0_reset_i),
+  .common_qpll0_lock       (common1_qpll0_lock_i),
+  .common_qpll0_outrefclk  (common1_qpll0_refclk_i),
+  .common_qpll0_outclk     (common1_qpll0_clk_i),
+  .common_qpll0_pd         (common1_qpll0_pd),
+
+  //QPLL1 Ports
+  .common_gtrefclk1        (qpll1_refclk),
+  .common_qpll1_reset      (qpll1_reset_i),
+  .common_qpll1_lock       (common1_qpll1_lock_i),
+  .common_qpll1_outrefclk  (common1_qpll1_refclk_i),
+  .common_qpll1_outclk     (common1_qpll1_clk_i),
+  .common_qpll1_pd         (common1_qpll1_pd)
+  );
+
   // Assign QPLL0 Common Output Ports
   assign common0_qpll0_lock_out    =  common0_qpll0_lock_i;
   assign common0_qpll0_refclk_out  =  common0_qpll0_refclk_i;
   assign common0_qpll0_clk_out     =  common0_qpll0_clk_i;
+  assign common1_qpll0_lock_out    =  common1_qpll0_lock_i;
+  assign common1_qpll0_refclk_out  =  common1_qpll0_refclk_i;
+  assign common1_qpll0_clk_out     =  common1_qpll0_clk_i;
 
   // Assign QPLL1 Common Output Ports
   assign common0_qpll1_lock_out    =  common0_qpll1_lock_i;
   assign common0_qpll1_refclk_out  =  common0_qpll1_refclk_i;
   assign common0_qpll1_clk_out     =  common0_qpll1_clk_i;
+  assign common1_qpll1_lock_out    =  common1_qpll1_lock_i;
+  assign common1_qpll1_refclk_out  =  common1_qpll1_refclk_i;
+  assign common1_qpll1_clk_out     =  common1_qpll1_clk_i;
 
 endmodule

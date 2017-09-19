@@ -76,6 +76,84 @@ set_property LOC GTHE3_CHANNEL_X0Y1 [get_cells -hierarchical -filter {NAME =~ *g
 #set_property package_pin AM5 [get_ports gthtxn_out[1]]
 #set_property package_pin AM6 [get_ports gthtxp_out[1]]
 
+# Commands for enabled transceiver GTHE3_CHANNEL_X0Y2
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Channel primitive location constraint
+set_property LOC GTHE3_CHANNEL_X0Y2 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[2].GTHE3_CHANNEL_PRIM_INST}]
+
+# Channel primitive serial data pin location constraints
+# (Provided as comments for your reference. The channel primitive location constraint is sufficient.)
+#set_property package_pin AK1 [get_ports gthrxn_in[2]]
+#set_property package_pin AK2 [get_ports gthrxp_in[2]]
+#set_property package_pin AL3 [get_ports gthtxn_out[2]]
+#set_property package_pin AL4 [get_ports gthtxp_out[2]]
+
+# Commands for enabled transceiver GTHE3_CHANNEL_X0Y3
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Channel primitive location constraint
+set_property LOC GTHE3_CHANNEL_X0Y3 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST}]
+
+# Channel primitive serial data pin location constraints
+# (Provided as comments for your reference. The channel primitive location constraint is sufficient.)
+#set_property package_pin AJ3 [get_ports gthrxn_in[3]]
+#set_property package_pin AJ4 [get_ports gthrxp_in[3]]
+#set_property package_pin AK5 [get_ports gthtxn_out[3]]
+#set_property package_pin AK6 [get_ports gthtxp_out[3]]
+
+# Commands for enabled transceiver GTHE3_CHANNEL_X0Y4
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Channel primitive location constraint
+set_property LOC GTHE3_CHANNEL_X0Y4 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST}]
+
+# Channel primitive serial data pin location constraints
+# (Provided as comments for your reference. The channel primitive location constraint is sufficient.)
+#set_property package_pin AH1 [get_ports gthrxn_in[4]]
+#set_property package_pin AH2 [get_ports gthrxp_in[4]]
+#set_property package_pin AH5 [get_ports gthtxn_out[4]]
+#set_property package_pin AH6 [get_ports gthtxp_out[4]]
+
+# Commands for enabled transceiver GTHE3_CHANNEL_X0Y5
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Channel primitive location constraint
+set_property LOC GTHE3_CHANNEL_X0Y5 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[1].GTHE3_CHANNEL_PRIM_INST}]
+
+# Channel primitive serial data pin location constraints
+# (Provided as comments for your reference. The channel primitive location constraint is sufficient.)
+#set_property package_pin AF1 [get_ports gthrxn_in[5]]
+#set_property package_pin AF2 [get_ports gthrxp_in[5]]
+#set_property package_pin AG3 [get_ports gthtxn_out[5]]
+#set_property package_pin AG4 [get_ports gthtxp_out[5]]
+
+# Commands for enabled transceiver GTHE3_CHANNEL_X0Y6
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Channel primitive location constraint
+set_property LOC GTHE3_CHANNEL_X0Y6 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[2].GTHE3_CHANNEL_PRIM_INST}]
+
+# Channel primitive serial data pin location constraints
+# (Provided as comments for your reference. The channel primitive location constraint is sufficient.)
+#set_property package_pin AD1 [get_ports gthrxn_in[6]]
+#set_property package_pin AD2 [get_ports gthrxp_in[6]]
+#set_property package_pin AE3 [get_ports gthtxn_out[6]]
+#set_property package_pin AE4 [get_ports gthtxp_out[6]]
+
+# Commands for enabled transceiver GTHE3_CHANNEL_X0Y7
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Channel primitive location constraint
+set_property LOC GTHE3_CHANNEL_X0Y7 [get_cells -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST}]
+
+# Channel primitive serial data pin location constraints
+# (Provided as comments for your reference. The channel primitive location constraint is sufficient.)
+#set_property package_pin AB1 [get_ports gthrxn_in[7]]
+#set_property package_pin AB2 [get_ports gthrxp_in[7]]
+#set_property package_pin AC3 [get_ports gthtxn_out[7]]
+#set_property package_pin AC4 [get_ports gthtxp_out[7]]
+
 
 # False path constraints
 # ----------------------------------------------------------------------------------------------------------------------

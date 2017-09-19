@@ -76,6 +76,42 @@ module jesd204_phy_0_transDbgCtrl_tx #(
    output reg                             txinihibit_1 = 0,
    output reg                             txpolarity_1 = 0,
 
+   // IO for bank 2 
+   output reg  [1:0]                      tx_pd_2 = 0,
+   output reg  [3:0]                      txdiffctrl_2 = 12,
+   output reg                             txinihibit_2 = 0,
+   output reg                             txpolarity_2 = 0,
+
+   // IO for bank 3 
+   output reg  [1:0]                      tx_pd_3 = 0,
+   output reg  [3:0]                      txdiffctrl_3 = 12,
+   output reg                             txinihibit_3 = 0,
+   output reg                             txpolarity_3 = 0,
+
+   // IO for bank 4 
+   output reg  [1:0]                      tx_pd_4 = 0,
+   output reg  [3:0]                      txdiffctrl_4 = 12,
+   output reg                             txinihibit_4 = 0,
+   output reg                             txpolarity_4 = 0,
+
+   // IO for bank 5 
+   output reg  [1:0]                      tx_pd_5 = 0,
+   output reg  [3:0]                      txdiffctrl_5 = 12,
+   output reg                             txinihibit_5 = 0,
+   output reg                             txpolarity_5 = 0,
+
+   // IO for bank 6 
+   output reg  [1:0]                      tx_pd_6 = 0,
+   output reg  [3:0]                      txdiffctrl_6 = 12,
+   output reg                             txinihibit_6 = 0,
+   output reg                             txpolarity_6 = 0,
+
+   // IO for bank 7 
+   output reg  [1:0]                      tx_pd_7 = 0,
+   output reg  [3:0]                      txdiffctrl_7 = 12,
+   output reg                             txinihibit_7 = 0,
+   output reg                             txpolarity_7 = 0,
+
  
    // basic register interface
    input                                  slv_rden,
@@ -203,6 +239,36 @@ module jesd204_phy_0_transDbgCtrl_tx #(
         txinihibit_1                   <= 1'd0;
         txpolarity_1                   <= 1'd0;
 
+        tx_pd_2                        <= 2'd0;
+        txdiffctrl_2                   <= 4'd12;
+        txinihibit_2                   <= 1'd0;
+        txpolarity_2                   <= 1'd0;
+
+        tx_pd_3                        <= 2'd0;
+        txdiffctrl_3                   <= 4'd12;
+        txinihibit_3                   <= 1'd0;
+        txpolarity_3                   <= 1'd0;
+
+        tx_pd_4                        <= 2'd0;
+        txdiffctrl_4                   <= 4'd12;
+        txinihibit_4                   <= 1'd0;
+        txpolarity_4                   <= 1'd0;
+
+        tx_pd_5                        <= 2'd0;
+        txdiffctrl_5                   <= 4'd12;
+        txinihibit_5                   <= 1'd0;
+        txpolarity_5                   <= 1'd0;
+
+        tx_pd_6                        <= 2'd0;
+        txdiffctrl_6                   <= 4'd12;
+        txinihibit_6                   <= 1'd0;
+        txpolarity_6                   <= 1'd0;
+
+        tx_pd_7                        <= 2'd0;
+        txdiffctrl_7                   <= 4'd12;
+        txinihibit_7                   <= 1'd0;
+        txpolarity_7                   <= 1'd0;
+
  
       end 
       else begin    
@@ -237,6 +303,90 @@ module jesd204_phy_0_transDbgCtrl_tx #(
                       end
             'h24    : begin // @ address = 0x10
                       txpolarity_1                   <= slv_wdata_r_internal[0];
+                      end
+
+            // WRITE assignments for signal block 2
+            'h41    : begin // @ address = 0x04
+                      tx_pd_2                        <= slv_wdata_r_internal[1:0];
+                      end
+            'h42    : begin // @ address = 0x08
+                      txdiffctrl_2                   <= slv_wdata_r_internal[3:0];
+                      end
+            'h43    : begin // @ address = 0x0C
+                      txinihibit_2                   <= slv_wdata_r_internal[0];
+                      end
+            'h44    : begin // @ address = 0x10
+                      txpolarity_2                   <= slv_wdata_r_internal[0];
+                      end
+
+            // WRITE assignments for signal block 3
+            'h61    : begin // @ address = 0x04
+                      tx_pd_3                        <= slv_wdata_r_internal[1:0];
+                      end
+            'h62    : begin // @ address = 0x08
+                      txdiffctrl_3                   <= slv_wdata_r_internal[3:0];
+                      end
+            'h63    : begin // @ address = 0x0C
+                      txinihibit_3                   <= slv_wdata_r_internal[0];
+                      end
+            'h64    : begin // @ address = 0x10
+                      txpolarity_3                   <= slv_wdata_r_internal[0];
+                      end
+
+            // WRITE assignments for signal block 4
+            'h81    : begin // @ address = 0x04
+                      tx_pd_4                        <= slv_wdata_r_internal[1:0];
+                      end
+            'h82    : begin // @ address = 0x08
+                      txdiffctrl_4                   <= slv_wdata_r_internal[3:0];
+                      end
+            'h83    : begin // @ address = 0x0C
+                      txinihibit_4                   <= slv_wdata_r_internal[0];
+                      end
+            'h84    : begin // @ address = 0x10
+                      txpolarity_4                   <= slv_wdata_r_internal[0];
+                      end
+
+            // WRITE assignments for signal block 5
+            'ha1    : begin // @ address = 0x04
+                      tx_pd_5                        <= slv_wdata_r_internal[1:0];
+                      end
+            'ha2    : begin // @ address = 0x08
+                      txdiffctrl_5                   <= slv_wdata_r_internal[3:0];
+                      end
+            'ha3    : begin // @ address = 0x0C
+                      txinihibit_5                   <= slv_wdata_r_internal[0];
+                      end
+            'ha4    : begin // @ address = 0x10
+                      txpolarity_5                   <= slv_wdata_r_internal[0];
+                      end
+
+            // WRITE assignments for signal block 6
+            'hc1    : begin // @ address = 0x04
+                      tx_pd_6                        <= slv_wdata_r_internal[1:0];
+                      end
+            'hc2    : begin // @ address = 0x08
+                      txdiffctrl_6                   <= slv_wdata_r_internal[3:0];
+                      end
+            'hc3    : begin // @ address = 0x0C
+                      txinihibit_6                   <= slv_wdata_r_internal[0];
+                      end
+            'hc4    : begin // @ address = 0x10
+                      txpolarity_6                   <= slv_wdata_r_internal[0];
+                      end
+
+            // WRITE assignments for signal block 7
+            'he1    : begin // @ address = 0x04
+                      tx_pd_7                        <= slv_wdata_r_internal[1:0];
+                      end
+            'he2    : begin // @ address = 0x08
+                      txdiffctrl_7                   <= slv_wdata_r_internal[3:0];
+                      end
+            'he3    : begin // @ address = 0x0C
+                      txinihibit_7                   <= slv_wdata_r_internal[0];
+                      end
+            'he4    : begin // @ address = 0x10
+                      txpolarity_7                   <= slv_wdata_r_internal[0];
                       end
 
 
@@ -289,6 +439,108 @@ module jesd204_phy_0_transDbgCtrl_tx #(
                end
      'h24    : begin // @ address = 0x10
                slv_rdata[0]         <= txpolarity_1;
+               end
+
+      // READ assignments for signal block 2
+     'h40    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'h41    : begin // @ address = 0x04
+               slv_rdata[1:0]       <= tx_pd_2;
+               end
+     'h42    : begin // @ address = 0x08
+               slv_rdata[3:0]       <= txdiffctrl_2;
+               end
+     'h43    : begin // @ address = 0x0C
+               slv_rdata[0]         <= txinihibit_2;
+               end
+     'h44    : begin // @ address = 0x10
+               slv_rdata[0]         <= txpolarity_2;
+               end
+
+      // READ assignments for signal block 3
+     'h60    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'h61    : begin // @ address = 0x04
+               slv_rdata[1:0]       <= tx_pd_3;
+               end
+     'h62    : begin // @ address = 0x08
+               slv_rdata[3:0]       <= txdiffctrl_3;
+               end
+     'h63    : begin // @ address = 0x0C
+               slv_rdata[0]         <= txinihibit_3;
+               end
+     'h64    : begin // @ address = 0x10
+               slv_rdata[0]         <= txpolarity_3;
+               end
+
+      // READ assignments for signal block 4
+     'h80    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'h81    : begin // @ address = 0x04
+               slv_rdata[1:0]       <= tx_pd_4;
+               end
+     'h82    : begin // @ address = 0x08
+               slv_rdata[3:0]       <= txdiffctrl_4;
+               end
+     'h83    : begin // @ address = 0x0C
+               slv_rdata[0]         <= txinihibit_4;
+               end
+     'h84    : begin // @ address = 0x10
+               slv_rdata[0]         <= txpolarity_4;
+               end
+
+      // READ assignments for signal block 5
+     'ha0    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'ha1    : begin // @ address = 0x04
+               slv_rdata[1:0]       <= tx_pd_5;
+               end
+     'ha2    : begin // @ address = 0x08
+               slv_rdata[3:0]       <= txdiffctrl_5;
+               end
+     'ha3    : begin // @ address = 0x0C
+               slv_rdata[0]         <= txinihibit_5;
+               end
+     'ha4    : begin // @ address = 0x10
+               slv_rdata[0]         <= txpolarity_5;
+               end
+
+      // READ assignments for signal block 6
+     'hc0    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'hc1    : begin // @ address = 0x04
+               slv_rdata[1:0]       <= tx_pd_6;
+               end
+     'hc2    : begin // @ address = 0x08
+               slv_rdata[3:0]       <= txdiffctrl_6;
+               end
+     'hc3    : begin // @ address = 0x0C
+               slv_rdata[0]         <= txinihibit_6;
+               end
+     'hc4    : begin // @ address = 0x10
+               slv_rdata[0]         <= txpolarity_6;
+               end
+
+      // READ assignments for signal block 7
+     'he0    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'he1    : begin // @ address = 0x04
+               slv_rdata[1:0]       <= tx_pd_7;
+               end
+     'he2    : begin // @ address = 0x08
+               slv_rdata[3:0]       <= txdiffctrl_7;
+               end
+     'he3    : begin // @ address = 0x0C
+               slv_rdata[0]         <= txinihibit_7;
+               end
+     'he4    : begin // @ address = 0x10
+               slv_rdata[0]         <= txpolarity_7;
                end
 
       default: slv_rdata            <= 'd0;

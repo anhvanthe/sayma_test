@@ -80,6 +80,9 @@ module jesd204_phy_0_phyCoreCtrlInterface #(
    output                                 qpll0_pd_0,
    output                                 qpll1_pd_0,
 
+   output                                 qpll0_pd_1,
+   output                                 qpll1_pd_1,
+
 //-----------------------------------------------------------------------------
 // Signal declarations for BANK transDbgCtrl_async
 //-----------------------------------------------------------------------------
@@ -101,6 +104,42 @@ module jesd204_phy_0_phyCoreCtrlInterface #(
    output      [4:0]                      txprecursor_1,
    output      [2:0]                      loopback_1,
 
+   output      [1:0]                      rx_pd_2,
+   output                                 cpll_pd_2,
+   output      [4:0]                      txpostcursor_2,
+   output      [4:0]                      txprecursor_2,
+   output      [2:0]                      loopback_2,
+
+   output      [1:0]                      rx_pd_3,
+   output                                 cpll_pd_3,
+   output      [4:0]                      txpostcursor_3,
+   output      [4:0]                      txprecursor_3,
+   output      [2:0]                      loopback_3,
+
+   output      [1:0]                      rx_pd_4,
+   output                                 cpll_pd_4,
+   output      [4:0]                      txpostcursor_4,
+   output      [4:0]                      txprecursor_4,
+   output      [2:0]                      loopback_4,
+
+   output      [1:0]                      rx_pd_5,
+   output                                 cpll_pd_5,
+   output      [4:0]                      txpostcursor_5,
+   output      [4:0]                      txprecursor_5,
+   output      [2:0]                      loopback_5,
+
+   output      [1:0]                      rx_pd_6,
+   output                                 cpll_pd_6,
+   output      [4:0]                      txpostcursor_6,
+   output      [4:0]                      txprecursor_6,
+   output      [2:0]                      loopback_6,
+
+   output      [1:0]                      rx_pd_7,
+   output                                 cpll_pd_7,
+   output      [4:0]                      txpostcursor_7,
+   output      [4:0]                      txprecursor_7,
+   output      [2:0]                      loopback_7,
+
 //-----------------------------------------------------------------------------
 // Signal declarations for BANK transDbgCtrl_tx
 //-----------------------------------------------------------------------------
@@ -113,6 +152,36 @@ module jesd204_phy_0_phyCoreCtrlInterface #(
    output      [3:0]                      txdiffctrl_1,
    output                                 txinihibit_1,
    output                                 txpolarity_1,
+
+   output      [1:0]                      tx_pd_2,
+   output      [3:0]                      txdiffctrl_2,
+   output                                 txinihibit_2,
+   output                                 txpolarity_2,
+
+   output      [1:0]                      tx_pd_3,
+   output      [3:0]                      txdiffctrl_3,
+   output                                 txinihibit_3,
+   output                                 txpolarity_3,
+
+   output      [1:0]                      tx_pd_4,
+   output      [3:0]                      txdiffctrl_4,
+   output                                 txinihibit_4,
+   output                                 txpolarity_4,
+
+   output      [1:0]                      tx_pd_5,
+   output      [3:0]                      txdiffctrl_5,
+   output                                 txinihibit_5,
+   output                                 txpolarity_5,
+
+   output      [1:0]                      tx_pd_6,
+   output      [3:0]                      txdiffctrl_6,
+   output                                 txinihibit_6,
+   output                                 txpolarity_6,
+
+   output      [1:0]                      tx_pd_7,
+   output      [3:0]                      txdiffctrl_7,
+   output                                 txinihibit_7,
+   output                                 txpolarity_7,
 
 //-----------------------------------------------------------------------------
 // Signal declarations for BANK transDbgCtrl_rx
@@ -142,6 +211,18 @@ module jesd204_phy_0_phyCoreCtrlInterface #(
 
    output                                 rxpolarity_1,
 
+   output                                 rxpolarity_2,
+
+   output                                 rxpolarity_3,
+
+   output                                 rxpolarity_4,
+
+   output                                 rxpolarity_5,
+
+   output                                 rxpolarity_6,
+
+   output                                 rxpolarity_7,
+
  
 //-----------------------------------------------------------------------------
 // DRP mailbox for prefix cmn_ connected to bank drpCommonMailbox
@@ -155,6 +236,16 @@ module jesd204_phy_0_phyCoreCtrlInterface #(
 
    input       [15:0]                     cmn_drp0_do,
    input                                  cmn_drp0_rdy,
+  
+// DRP interface 1
+   output      [CMN_C_S_DRP_ADDR_WIDTH-1:0] cmn_drp1_addr,
+   output      [15:0]                     cmn_drp1_di,
+   output                                 cmn_drp1_we,
+   output                                 cmn_drp1_en,
+   output                                 cmn_drp1_rst,
+
+   input       [15:0]                     cmn_drp1_do,
+   input                                  cmn_drp1_rdy,
   
 //-----------------------------------------------------------------------------
 // DRP mailbox for prefix gt_ connected to bank drpChannelMailbox
@@ -178,6 +269,66 @@ module jesd204_phy_0_phyCoreCtrlInterface #(
 
    input       [15:0]                     gt_drp1_do,
    input                                  gt_drp1_rdy,
+  
+// DRP interface 2
+   output      [GT_C_S_DRP_ADDR_WIDTH-1:0] gt_drp2_addr,
+   output      [15:0]                     gt_drp2_di,
+   output                                 gt_drp2_we,
+   output                                 gt_drp2_en,
+   output                                 gt_drp2_rst,
+
+   input       [15:0]                     gt_drp2_do,
+   input                                  gt_drp2_rdy,
+  
+// DRP interface 3
+   output      [GT_C_S_DRP_ADDR_WIDTH-1:0] gt_drp3_addr,
+   output      [15:0]                     gt_drp3_di,
+   output                                 gt_drp3_we,
+   output                                 gt_drp3_en,
+   output                                 gt_drp3_rst,
+
+   input       [15:0]                     gt_drp3_do,
+   input                                  gt_drp3_rdy,
+  
+// DRP interface 4
+   output      [GT_C_S_DRP_ADDR_WIDTH-1:0] gt_drp4_addr,
+   output      [15:0]                     gt_drp4_di,
+   output                                 gt_drp4_we,
+   output                                 gt_drp4_en,
+   output                                 gt_drp4_rst,
+
+   input       [15:0]                     gt_drp4_do,
+   input                                  gt_drp4_rdy,
+  
+// DRP interface 5
+   output      [GT_C_S_DRP_ADDR_WIDTH-1:0] gt_drp5_addr,
+   output      [15:0]                     gt_drp5_di,
+   output                                 gt_drp5_we,
+   output                                 gt_drp5_en,
+   output                                 gt_drp5_rst,
+
+   input       [15:0]                     gt_drp5_do,
+   input                                  gt_drp5_rdy,
+  
+// DRP interface 6
+   output      [GT_C_S_DRP_ADDR_WIDTH-1:0] gt_drp6_addr,
+   output      [15:0]                     gt_drp6_di,
+   output                                 gt_drp6_we,
+   output                                 gt_drp6_en,
+   output                                 gt_drp6_rst,
+
+   input       [15:0]                     gt_drp6_do,
+   input                                  gt_drp6_rdy,
+  
+// DRP interface 7
+   output      [GT_C_S_DRP_ADDR_WIDTH-1:0] gt_drp7_addr,
+   output      [15:0]                     gt_drp7_di,
+   output                                 gt_drp7_we,
+   output                                 gt_drp7_en,
+   output                                 gt_drp7_rst,
+
+   input       [15:0]                     gt_drp7_do,
+   input                                  gt_drp7_rdy,
   
 //-----------------------------------------------------------------------------
 // Other clock domain IO
@@ -412,6 +563,15 @@ jesd204_phy_0_drpCommonMailbox #(
   .drp0_do                             (cmn_drp0_do                   ),
   .drp0_rdy                            (cmn_drp0_rdy                  ),
 
+  .drp1_addr                           (cmn_drp1_addr                 ),
+  .drp1_di                             (cmn_drp1_di                   ),
+  .drp1_we                             (cmn_drp1_we                   ),
+  .drp1_en                             (cmn_drp1_en                   ),
+  .drp1_rst                            (cmn_drp1_rst                  ),
+
+  .drp1_do                             (cmn_drp1_do                   ),
+  .drp1_rdy                            (cmn_drp1_rdy                  ),
+
   .cmm_interface_sel                   (cmm_interface_sel             ),
 
   .slv_wdata                           (slv_wdata                     ),
@@ -458,6 +618,60 @@ jesd204_phy_0_drpChannelMailbox #(
   .drp1_do                             (gt_drp1_do                    ),
   .drp1_rdy                            (gt_drp1_rdy                   ),
 
+  .drp2_addr                           (gt_drp2_addr                  ),
+  .drp2_di                             (gt_drp2_di                    ),
+  .drp2_we                             (gt_drp2_we                    ),
+  .drp2_en                             (gt_drp2_en                    ),
+  .drp2_rst                            (gt_drp2_rst                   ),
+
+  .drp2_do                             (gt_drp2_do                    ),
+  .drp2_rdy                            (gt_drp2_rdy                   ),
+
+  .drp3_addr                           (gt_drp3_addr                  ),
+  .drp3_di                             (gt_drp3_di                    ),
+  .drp3_we                             (gt_drp3_we                    ),
+  .drp3_en                             (gt_drp3_en                    ),
+  .drp3_rst                            (gt_drp3_rst                   ),
+
+  .drp3_do                             (gt_drp3_do                    ),
+  .drp3_rdy                            (gt_drp3_rdy                   ),
+
+  .drp4_addr                           (gt_drp4_addr                  ),
+  .drp4_di                             (gt_drp4_di                    ),
+  .drp4_we                             (gt_drp4_we                    ),
+  .drp4_en                             (gt_drp4_en                    ),
+  .drp4_rst                            (gt_drp4_rst                   ),
+
+  .drp4_do                             (gt_drp4_do                    ),
+  .drp4_rdy                            (gt_drp4_rdy                   ),
+
+  .drp5_addr                           (gt_drp5_addr                  ),
+  .drp5_di                             (gt_drp5_di                    ),
+  .drp5_we                             (gt_drp5_we                    ),
+  .drp5_en                             (gt_drp5_en                    ),
+  .drp5_rst                            (gt_drp5_rst                   ),
+
+  .drp5_do                             (gt_drp5_do                    ),
+  .drp5_rdy                            (gt_drp5_rdy                   ),
+
+  .drp6_addr                           (gt_drp6_addr                  ),
+  .drp6_di                             (gt_drp6_di                    ),
+  .drp6_we                             (gt_drp6_we                    ),
+  .drp6_en                             (gt_drp6_en                    ),
+  .drp6_rst                            (gt_drp6_rst                   ),
+
+  .drp6_do                             (gt_drp6_do                    ),
+  .drp6_rdy                            (gt_drp6_rdy                   ),
+
+  .drp7_addr                           (gt_drp7_addr                  ),
+  .drp7_di                             (gt_drp7_di                    ),
+  .drp7_we                             (gt_drp7_we                    ),
+  .drp7_en                             (gt_drp7_en                    ),
+  .drp7_rst                            (gt_drp7_rst                   ),
+
+  .drp7_do                             (gt_drp7_do                    ),
+  .drp7_rdy                            (gt_drp7_rdy                   ),
+
   .gt_interface_sel                    (gt_interface_sel              ),
 
   .slv_wdata                           (slv_wdata                     ),
@@ -488,6 +702,9 @@ jesd204_phy_0_commonDbgCtrl #(
 
   .qpll0_pd_0                          (qpll0_pd_0                    ),
   .qpll1_pd_0                          (qpll1_pd_0                    ),
+
+  .qpll0_pd_1                          (qpll0_pd_1                    ),
+  .qpll1_pd_1                          (qpll1_pd_1                    ),
 
   .slv_addr                            (slv_addr                      ),
   .slv_wdata                           (slv_wdata                     ),
@@ -529,6 +746,42 @@ jesd204_phy_0_transDbgCtrl_async #(
   .txprecursor_1                       (txprecursor_1                 ),
   .loopback_1                          (loopback_1                    ),
 
+  .rx_pd_2                             (rx_pd_2                       ),
+  .cpll_pd_2                           (cpll_pd_2                     ),
+  .txpostcursor_2                      (txpostcursor_2                ),
+  .txprecursor_2                       (txprecursor_2                 ),
+  .loopback_2                          (loopback_2                    ),
+
+  .rx_pd_3                             (rx_pd_3                       ),
+  .cpll_pd_3                           (cpll_pd_3                     ),
+  .txpostcursor_3                      (txpostcursor_3                ),
+  .txprecursor_3                       (txprecursor_3                 ),
+  .loopback_3                          (loopback_3                    ),
+
+  .rx_pd_4                             (rx_pd_4                       ),
+  .cpll_pd_4                           (cpll_pd_4                     ),
+  .txpostcursor_4                      (txpostcursor_4                ),
+  .txprecursor_4                       (txprecursor_4                 ),
+  .loopback_4                          (loopback_4                    ),
+
+  .rx_pd_5                             (rx_pd_5                       ),
+  .cpll_pd_5                           (cpll_pd_5                     ),
+  .txpostcursor_5                      (txpostcursor_5                ),
+  .txprecursor_5                       (txprecursor_5                 ),
+  .loopback_5                          (loopback_5                    ),
+
+  .rx_pd_6                             (rx_pd_6                       ),
+  .cpll_pd_6                           (cpll_pd_6                     ),
+  .txpostcursor_6                      (txpostcursor_6                ),
+  .txprecursor_6                       (txprecursor_6                 ),
+  .loopback_6                          (loopback_6                    ),
+
+  .rx_pd_7                             (rx_pd_7                       ),
+  .cpll_pd_7                           (cpll_pd_7                     ),
+  .txpostcursor_7                      (txpostcursor_7                ),
+  .txprecursor_7                       (txprecursor_7                 ),
+  .loopback_7                          (loopback_7                    ),
+
   .slv_addr                            (slv_addr                      ),
   .slv_wdata                           (slv_wdata                     ),
   .slv_rden                            (chan_async_slv_rden           ),
@@ -560,6 +813,36 @@ jesd204_phy_0_transDbgCtrl_tx #(
   .txdiffctrl_1                        (txdiffctrl_1                  ),
   .txinihibit_1                        (txinihibit_1                  ),
   .txpolarity_1                        (txpolarity_1                  ),
+
+  .tx_pd_2                             (tx_pd_2                       ),
+  .txdiffctrl_2                        (txdiffctrl_2                  ),
+  .txinihibit_2                        (txinihibit_2                  ),
+  .txpolarity_2                        (txpolarity_2                  ),
+
+  .tx_pd_3                             (tx_pd_3                       ),
+  .txdiffctrl_3                        (txdiffctrl_3                  ),
+  .txinihibit_3                        (txinihibit_3                  ),
+  .txpolarity_3                        (txpolarity_3                  ),
+
+  .tx_pd_4                             (tx_pd_4                       ),
+  .txdiffctrl_4                        (txdiffctrl_4                  ),
+  .txinihibit_4                        (txinihibit_4                  ),
+  .txpolarity_4                        (txpolarity_4                  ),
+
+  .tx_pd_5                             (tx_pd_5                       ),
+  .txdiffctrl_5                        (txdiffctrl_5                  ),
+  .txinihibit_5                        (txinihibit_5                  ),
+  .txpolarity_5                        (txpolarity_5                  ),
+
+  .tx_pd_6                             (tx_pd_6                       ),
+  .txdiffctrl_6                        (txdiffctrl_6                  ),
+  .txinihibit_6                        (txinihibit_6                  ),
+  .txpolarity_6                        (txpolarity_6                  ),
+
+  .tx_pd_7                             (tx_pd_7                       ),
+  .txdiffctrl_7                        (txdiffctrl_7                  ),
+  .txinihibit_7                        (txinihibit_7                  ),
+  .txpolarity_7                        (txpolarity_7                  ),
 
   .slv_addr                            (slv_addr                      ),
   .slv_wdata                           (slv_wdata                     ),
@@ -610,6 +893,18 @@ jesd204_phy_0_transDbgCtrl_rx #(
   .rxdfevphold                         (rxdfevphold                   ),
 
   .rxpolarity_1                        (rxpolarity_1                  ),
+
+  .rxpolarity_2                        (rxpolarity_2                  ),
+
+  .rxpolarity_3                        (rxpolarity_3                  ),
+
+  .rxpolarity_4                        (rxpolarity_4                  ),
+
+  .rxpolarity_5                        (rxpolarity_5                  ),
+
+  .rxpolarity_6                        (rxpolarity_6                  ),
+
+  .rxpolarity_7                        (rxpolarity_7                  ),
 
   .slv_addr                            (slv_addr                      ),
   .slv_wdata                           (slv_wdata                     ),

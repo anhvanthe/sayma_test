@@ -19,20 +19,6 @@ ps = JESD204BPhysicalSettings(l=8, m=4, n=16, np=16)
 ts = JESD204BTransportSettings(f=2, s=2, k=16, cs=0)
 jesd_settings = JESD204BSettings(ps, ts, did=0x5a, bid=0x5)
 
-
-# configure tx electrical settings
-for i in range(8):
-    produce_square_wave = getattr(wb_amc.regs, "dac1_core_phy{:d}_transmitter_produce_square_wave".format(i))
-    txdiffctrl = getattr(wb_amc.regs, "dac1_core_phy{:d}_transmitter_txdiffcttrl".format(i))
-    txmaincursor = getattr(wb_amc.regs, "dac1_core_phy{:d}_transmitter_txmaincursor".format(i))
-    txprecursor = getattr(wb_amc.regs, "dac1_core_phy{:d}_transmitter_txprecursor".format(i))
-    txpostcursor = getattr(wb_amc.regs, "dac1_core_phy{:d}_transmitter_txpostcursor".format(i))
-    produce_square_wave.write(0) # 1 to generate clock on lane with frequency of linerate/40
-    txdiffctrl.write(0b1111) # cf ug576
-    txmaincursor.write(80) # cf ug576
-    txprecursor.write(0b000000) # cf ug576
-    txpostcursor.write(0b000000) # cf ug576
-
 # reset dacs
 wb_rtm.regs.dac_reset_out.write(0)
 time.sleep(1)
@@ -50,11 +36,9 @@ dac1.startup(jesd_settings, linerate=5e9)
 dac1.print_status()
 
 # release/reset jesd core
-wb_amc.regs.dac1_control_prbs_config.write(0)
-wb_amc.regs.dac1_control_enable.write(0)
+wb_amc.regs.jesd_control_reset.write(1)
 time.sleep(1)
-wb_amc.regs.dac1_control_enable.write(1)
-
+wb_amc.regs.jesd_control_reset.write(0)
 time.sleep(1)
 
 # show dac0 status
@@ -64,13 +48,13 @@ dac1.print_status()
 if len(sys.argv) > 1:
     if sys.argv[1] == "prbs":
         fpga_prbs_configs = {
-            "prbs7" : 0b01,
-            "prbs15": 0b10,
-            "prbs31": 0b11
+            "prbs7" : 0b0001,
+            "prbs15": 0b0011,
+            "prbs31": 0b0101
         }
         for prbs in ["prbs7", "prbs15", "prbs31"]:
             # configure prbs on fpga
-            wb_amc.regs.dac1_control_prbs_config.write(fpga_prbs_configs[prbs])
+            wb_amc.regs.jesd_control_prbs_config.write(fpga_prbs_configs[prbs])
             # prbs test on ad9154
             status, errors = dac1.prbs_test(prbs, 100)
             print("{:s} test status: {:02x}".format(prbs, status))

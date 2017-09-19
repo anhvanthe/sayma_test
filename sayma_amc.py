@@ -156,8 +156,8 @@ _io = [
         IOStandard("LVDS")
     ),
     ("dac_jesd", 0,
-        Subsignal("txp", Pins("R4 U4")),
-        Subsignal("txn", Pins("R3 U3"))
+	    Subsignal("txp", Pins("R4 U4 W4 AA4 AC4 AE4 AG4 AH6")),
+        Subsignal("txn", Pins("R3 U3 W3 AA3 AC3 AE3 AG3 AH5"))
     ),
 
     ("dac_refclk", 1,
@@ -175,8 +175,8 @@ _io = [
         IOStandard("LVDS")
     ),
     ("dac_jesd", 1,
-        Subsignal("txp", Pins("B6 C4")),
-        Subsignal("txn", Pins("B5 C3"))
+        Subsignal("txp", Pins("B6 C4 D6 F6 G4 J4 L4 N4")),
+        Subsignal("txn", Pins("B5 C3 D5 F5 G3 J3 L3 N3"))
     ),
 
     # adc
@@ -186,8 +186,8 @@ _io = [
     ),
 
     ("adc_jesd", 1,
-        Subsignal("rxp", Pins("E4 D2")), # fake: don't care
-        Subsignal("rxn", Pins("E3 D1"))  # fake: don't care
+        Subsignal("rxp", Pins("A4 B2 D2 E4 F2 H2 K2 M2")), # fake: don't care
+        Subsignal("rxn", Pins("A3 B1 D1 E3 F1 H1 K1 M1"))  # fake: don't care
     ),
 
     # drtio
@@ -426,6 +426,8 @@ def get_phy_pads(jesd_pads, n):
 class JESDControl(Module, AutoCSR):
     def __init__(self):
         self.reset = CSRStorage()
+        self.prbs_config = CSRStorage(4)
+
 
 class JESDTestSoC(SoCCore):
     csr_map = {
@@ -466,18 +468,15 @@ class JESDTestSoC(SoCCore):
         jesd_reset = Signal()
         jesd_tx_reset_done = Signal()
         jesd_rx_reset_done = Signal()
-
-        sys_refclk_pads = platform.request("dac_sysref", 1)
-        
+      
         refclk_pads = platform.request("dac_refclk", 1)
         dac_jesd_pads = platform.request("dac_jesd", 1)
         adc_jesd_pads = platform.request("adc_jesd", 1)
 
+        self.specials += Instance("jesd204_phy_0_example_design",
+            p_pLanes=8,
 
-        adc_refclk_pads = platform.request("adc_refclk", 1)
-
-        self.specials += Instance("jesd204_phy_0_example_design", 
-            i_s_axi_aclk=0,
+            i_s_axi_aclk=ClockSignal(),
             i_s_axi_aresetn=0,
             i_s_axi_awaddr=0,
             i_s_axi_awvalid=0,
@@ -494,12 +493,13 @@ class JESDTestSoC(SoCCore):
             #o_s_axi_rdata=,
             #o_s_axi_rresp=,
             #o_s_axi_rvalid,
-            i_s_axi_rready=0,
+            i_s_axi_rready=1,
 
             i_drpclk_in=ClockSignal(),
             i_refclk_common_p=refclk_pads.p,
             i_refclk_common_n=refclk_pads.n,
             i_reset=self.jesd_control.reset.storage,
+            i_prbs_config=self.jesd_control.prbs_config.storage,
               
             #o_gpio_led_testPassed=,
             #o_gpio_led_error=,
@@ -518,8 +518,9 @@ class JESDTestSoC(SoCCore):
         platform.add_source_dir(os.path.join("gateware", "jesd"))
 
         self.comb += [
-            platform.request("user_led", 0).eq(jesd_tx_reset_done),
-            platform.request("user_led", 1).eq(jesd_rx_reset_done),
+        	platform.request("user_led", 0).eq(self.jesd_control.reset.storage),
+            platform.request("user_led", 1).eq(jesd_tx_reset_done),
+            platform.request("user_led", 2).eq(jesd_rx_reset_done)
         ]
 
     def do_exit(self, vns):

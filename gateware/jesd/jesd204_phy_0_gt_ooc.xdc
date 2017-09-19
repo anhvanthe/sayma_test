@@ -58,30 +58,72 @@
 # Internal TX user clock constraint (will be overridden by required reference clock constraint propagated through CHANNEL primitive in context)
 create_clock -period 8.0 [get_ports txusrclk_in[0]]
 create_clock -period 8.0 [get_ports txusrclk_in[1]]
+create_clock -period 8.0 [get_ports txusrclk_in[2]]
+create_clock -period 8.0 [get_ports txusrclk_in[3]]
+create_clock -period 8.0 [get_ports txusrclk_in[4]]
+create_clock -period 8.0 [get_ports txusrclk_in[5]]
+create_clock -period 8.0 [get_ports txusrclk_in[6]]
+create_clock -period 8.0 [get_ports txusrclk_in[7]]
 
 # External TX user clock constraint (will be overridden by required reference clock constraint propagated through CHANNEL primitive in context)
 create_clock -period 8.0 [get_ports txusrclk2_in[0]]
 create_clock -period 8.0 [get_ports txusrclk2_in[1]]
+create_clock -period 8.0 [get_ports txusrclk2_in[2]]
+create_clock -period 8.0 [get_ports txusrclk2_in[3]]
+create_clock -period 8.0 [get_ports txusrclk2_in[4]]
+create_clock -period 8.0 [get_ports txusrclk2_in[5]]
+create_clock -period 8.0 [get_ports txusrclk2_in[6]]
+create_clock -period 8.0 [get_ports txusrclk2_in[7]]
 
 # TXOUTCLK constraint, required in OOC flows when reference clock input port is external to the IP instance
 create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
 create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[1].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[2].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[1].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[2].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST/TXOUTCLK}]
 
 # Internal RX user clock constraint (will be overridden by required reference clock constraint propagated through CHANNEL primitive in context)
 create_clock -period 8.0 [get_ports rxusrclk_in[0]]
 create_clock -period 8.0 [get_ports rxusrclk_in[1]]
+create_clock -period 8.0 [get_ports rxusrclk_in[2]]
+create_clock -period 8.0 [get_ports rxusrclk_in[3]]
+create_clock -period 8.0 [get_ports rxusrclk_in[4]]
+create_clock -period 8.0 [get_ports rxusrclk_in[5]]
+create_clock -period 8.0 [get_ports rxusrclk_in[6]]
+create_clock -period 8.0 [get_ports rxusrclk_in[7]]
 
 # External RX user clock constraint (will be overridden by required reference clock constraint propagated through CHANNEL primitive in context)
 create_clock -period 8.0 [get_ports rxusrclk2_in[0]]
 create_clock -period 8.0 [get_ports rxusrclk2_in[1]]
+create_clock -period 8.0 [get_ports rxusrclk2_in[2]]
+create_clock -period 8.0 [get_ports rxusrclk2_in[3]]
+create_clock -period 8.0 [get_ports rxusrclk2_in[4]]
+create_clock -period 8.0 [get_ports rxusrclk2_in[5]]
+create_clock -period 8.0 [get_ports rxusrclk2_in[6]]
+create_clock -period 8.0 [get_ports rxusrclk2_in[7]]
 
 # RXOUTCLK constraint, required in OOC flows when reference clock input port is external to the IP instance
 create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
 create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[1].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[2].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[0].*gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[0].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[1].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[2].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
+create_clock -period 8.0 [get_pins -hierarchical -filter {NAME =~ *gen_channel_container[1].*gen_gthe3_channel_inst[3].GTHE3_CHANNEL_PRIM_INST/RXOUTCLK}]
 
 # DRP clock constraint for CHANNEL primitive
 create_clock -period 10.0 [get_ports drpclk_in[0]]
 create_clock -period 10.0 [get_ports drpclk_in[1]]
+create_clock -period 10.0 [get_ports drpclk_in[2]]
+create_clock -period 10.0 [get_ports drpclk_in[3]]
+create_clock -period 10.0 [get_ports drpclk_in[4]]
+create_clock -period 10.0 [get_ports drpclk_in[5]]
+create_clock -period 10.0 [get_ports drpclk_in[6]]
+create_clock -period 10.0 [get_ports drpclk_in[7]]
 
 
 

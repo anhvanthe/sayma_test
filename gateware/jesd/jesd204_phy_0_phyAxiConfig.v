@@ -133,9 +133,9 @@ module jesd204_phy_0_phyAxiConfig #(
   assign  speedgrade                     = 8'd20;
   assign  package                        = 8'd3;
   assign  gt_type                        = 8'd5;
-  assign  num_common_drp                 = 31'd1;
-  assign  num_transceiver_drp            = 31'd2;
-  assign  num_transceiver_dbg            = 31'd2;
+  assign  num_common_drp                 = 31'd2;
+  assign  num_transceiver_drp            = 31'd8;
+  assign  num_transceiver_dbg            = 31'd8;
   assign  gt_rx_master_chan              = 4'd0;
   assign  gt_tx_master_chan              = 4'd0;
   assign  rx_is_64                       = 1'd0;
@@ -156,8 +156,8 @@ module jesd204_phy_0_phyAxiConfig #(
   assign  drp_clk_rate                   = 32'd100000;
   assign  gen_uuid                       = 32'd1617409;
   assign  gen_version                    = 32'd0;
-  assign  gen_date                       = 32'd20170918;
-  assign  gen_time                       = 32'd170655;
+  assign  gen_date                       = 32'd20170919;
+  assign  gen_time                       = 32'd162438;
 
   //----------------------------------------------------------------------------
   // Register write logic

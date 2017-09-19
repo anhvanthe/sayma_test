@@ -91,6 +91,24 @@ module jesd204_phy_0_transDbgCtrl_rx #(
    // IO for bank 1 
    output reg                             rxpolarity_1 = 0,
 
+   // IO for bank 2 
+   output reg                             rxpolarity_2 = 0,
+
+   // IO for bank 3 
+   output reg                             rxpolarity_3 = 0,
+
+   // IO for bank 4 
+   output reg                             rxpolarity_4 = 0,
+
+   // IO for bank 5 
+   output reg                             rxpolarity_5 = 0,
+
+   // IO for bank 6 
+   output reg                             rxpolarity_6 = 0,
+
+   // IO for bank 7 
+   output reg                             rxpolarity_7 = 0,
+
  
    // basic register interface
    input                                  slv_rden,
@@ -233,6 +251,18 @@ module jesd204_phy_0_transDbgCtrl_rx #(
 
         rxpolarity_1                   <= 1'd0;
 
+        rxpolarity_2                   <= 1'd0;
+
+        rxpolarity_3                   <= 1'd0;
+
+        rxpolarity_4                   <= 1'd0;
+
+        rxpolarity_5                   <= 1'd0;
+
+        rxpolarity_6                   <= 1'd0;
+
+        rxpolarity_7                   <= 1'd0;
+
  
       end 
       else begin    
@@ -284,6 +314,198 @@ module jesd204_phy_0_transDbgCtrl_rx #(
                       rxdfelpmreset                  <= slv_wdata_r_internal[0];
                       end
             'h25    : begin // @ address = 0x14
+                      rxdfetap2hold                  <= slv_wdata_r_internal[2];
+                      rxdfetap3hold                  <= slv_wdata_r_internal[3];
+                      rxdfetap4hold                  <= slv_wdata_r_internal[4];
+                      rxdfetap5hold                  <= slv_wdata_r_internal[5];
+                      rxdfetap6hold                  <= slv_wdata_r_internal[6];
+                      rxdfetap7hold                  <= slv_wdata_r_internal[7];
+                      rxdfetap8hold                  <= slv_wdata_r_internal[8];
+                      rxdfetap9hold                  <= slv_wdata_r_internal[9];
+                      rxdfetap10hold                 <= slv_wdata_r_internal[10];
+                      rxdfetap11hold                 <= slv_wdata_r_internal[11];
+                      rxdfetap12hold                 <= slv_wdata_r_internal[12];
+                      rxdfetap13hold                 <= slv_wdata_r_internal[13];
+                      rxdfetap14hold                 <= slv_wdata_r_internal[14];
+                      rxdfetap15hold                 <= slv_wdata_r_internal[15];
+                      rxoshold                       <= slv_wdata_r_internal[16];
+                      rxdfeagchold                   <= slv_wdata_r_internal[17];
+                      rxdfelfhold                    <= slv_wdata_r_internal[18];
+                      rxdfeuthold                    <= slv_wdata_r_internal[19];
+                      rxdfevphold                    <= slv_wdata_r_internal[20];
+                      end
+
+            // WRITE assignments for signal block 2
+            'h41    : begin // @ address = 0x04
+                      rxpolarity_2                   <= slv_wdata_r_internal[0];
+                      end
+            'h42    : begin // @ address = 0x08
+                      rxlpmen                        <= slv_wdata_r_internal[0];
+                      end
+            'h43    : begin // @ address = 0x0C
+                      rxdfelpmreset                  <= slv_wdata_r_internal[0];
+                      end
+            'h45    : begin // @ address = 0x14
+                      rxdfetap2hold                  <= slv_wdata_r_internal[2];
+                      rxdfetap3hold                  <= slv_wdata_r_internal[3];
+                      rxdfetap4hold                  <= slv_wdata_r_internal[4];
+                      rxdfetap5hold                  <= slv_wdata_r_internal[5];
+                      rxdfetap6hold                  <= slv_wdata_r_internal[6];
+                      rxdfetap7hold                  <= slv_wdata_r_internal[7];
+                      rxdfetap8hold                  <= slv_wdata_r_internal[8];
+                      rxdfetap9hold                  <= slv_wdata_r_internal[9];
+                      rxdfetap10hold                 <= slv_wdata_r_internal[10];
+                      rxdfetap11hold                 <= slv_wdata_r_internal[11];
+                      rxdfetap12hold                 <= slv_wdata_r_internal[12];
+                      rxdfetap13hold                 <= slv_wdata_r_internal[13];
+                      rxdfetap14hold                 <= slv_wdata_r_internal[14];
+                      rxdfetap15hold                 <= slv_wdata_r_internal[15];
+                      rxoshold                       <= slv_wdata_r_internal[16];
+                      rxdfeagchold                   <= slv_wdata_r_internal[17];
+                      rxdfelfhold                    <= slv_wdata_r_internal[18];
+                      rxdfeuthold                    <= slv_wdata_r_internal[19];
+                      rxdfevphold                    <= slv_wdata_r_internal[20];
+                      end
+
+            // WRITE assignments for signal block 3
+            'h61    : begin // @ address = 0x04
+                      rxpolarity_3                   <= slv_wdata_r_internal[0];
+                      end
+            'h62    : begin // @ address = 0x08
+                      rxlpmen                        <= slv_wdata_r_internal[0];
+                      end
+            'h63    : begin // @ address = 0x0C
+                      rxdfelpmreset                  <= slv_wdata_r_internal[0];
+                      end
+            'h65    : begin // @ address = 0x14
+                      rxdfetap2hold                  <= slv_wdata_r_internal[2];
+                      rxdfetap3hold                  <= slv_wdata_r_internal[3];
+                      rxdfetap4hold                  <= slv_wdata_r_internal[4];
+                      rxdfetap5hold                  <= slv_wdata_r_internal[5];
+                      rxdfetap6hold                  <= slv_wdata_r_internal[6];
+                      rxdfetap7hold                  <= slv_wdata_r_internal[7];
+                      rxdfetap8hold                  <= slv_wdata_r_internal[8];
+                      rxdfetap9hold                  <= slv_wdata_r_internal[9];
+                      rxdfetap10hold                 <= slv_wdata_r_internal[10];
+                      rxdfetap11hold                 <= slv_wdata_r_internal[11];
+                      rxdfetap12hold                 <= slv_wdata_r_internal[12];
+                      rxdfetap13hold                 <= slv_wdata_r_internal[13];
+                      rxdfetap14hold                 <= slv_wdata_r_internal[14];
+                      rxdfetap15hold                 <= slv_wdata_r_internal[15];
+                      rxoshold                       <= slv_wdata_r_internal[16];
+                      rxdfeagchold                   <= slv_wdata_r_internal[17];
+                      rxdfelfhold                    <= slv_wdata_r_internal[18];
+                      rxdfeuthold                    <= slv_wdata_r_internal[19];
+                      rxdfevphold                    <= slv_wdata_r_internal[20];
+                      end
+
+            // WRITE assignments for signal block 4
+            'h81    : begin // @ address = 0x04
+                      rxpolarity_4                   <= slv_wdata_r_internal[0];
+                      end
+            'h82    : begin // @ address = 0x08
+                      rxlpmen                        <= slv_wdata_r_internal[0];
+                      end
+            'h83    : begin // @ address = 0x0C
+                      rxdfelpmreset                  <= slv_wdata_r_internal[0];
+                      end
+            'h85    : begin // @ address = 0x14
+                      rxdfetap2hold                  <= slv_wdata_r_internal[2];
+                      rxdfetap3hold                  <= slv_wdata_r_internal[3];
+                      rxdfetap4hold                  <= slv_wdata_r_internal[4];
+                      rxdfetap5hold                  <= slv_wdata_r_internal[5];
+                      rxdfetap6hold                  <= slv_wdata_r_internal[6];
+                      rxdfetap7hold                  <= slv_wdata_r_internal[7];
+                      rxdfetap8hold                  <= slv_wdata_r_internal[8];
+                      rxdfetap9hold                  <= slv_wdata_r_internal[9];
+                      rxdfetap10hold                 <= slv_wdata_r_internal[10];
+                      rxdfetap11hold                 <= slv_wdata_r_internal[11];
+                      rxdfetap12hold                 <= slv_wdata_r_internal[12];
+                      rxdfetap13hold                 <= slv_wdata_r_internal[13];
+                      rxdfetap14hold                 <= slv_wdata_r_internal[14];
+                      rxdfetap15hold                 <= slv_wdata_r_internal[15];
+                      rxoshold                       <= slv_wdata_r_internal[16];
+                      rxdfeagchold                   <= slv_wdata_r_internal[17];
+                      rxdfelfhold                    <= slv_wdata_r_internal[18];
+                      rxdfeuthold                    <= slv_wdata_r_internal[19];
+                      rxdfevphold                    <= slv_wdata_r_internal[20];
+                      end
+
+            // WRITE assignments for signal block 5
+            'ha1    : begin // @ address = 0x04
+                      rxpolarity_5                   <= slv_wdata_r_internal[0];
+                      end
+            'ha2    : begin // @ address = 0x08
+                      rxlpmen                        <= slv_wdata_r_internal[0];
+                      end
+            'ha3    : begin // @ address = 0x0C
+                      rxdfelpmreset                  <= slv_wdata_r_internal[0];
+                      end
+            'ha5    : begin // @ address = 0x14
+                      rxdfetap2hold                  <= slv_wdata_r_internal[2];
+                      rxdfetap3hold                  <= slv_wdata_r_internal[3];
+                      rxdfetap4hold                  <= slv_wdata_r_internal[4];
+                      rxdfetap5hold                  <= slv_wdata_r_internal[5];
+                      rxdfetap6hold                  <= slv_wdata_r_internal[6];
+                      rxdfetap7hold                  <= slv_wdata_r_internal[7];
+                      rxdfetap8hold                  <= slv_wdata_r_internal[8];
+                      rxdfetap9hold                  <= slv_wdata_r_internal[9];
+                      rxdfetap10hold                 <= slv_wdata_r_internal[10];
+                      rxdfetap11hold                 <= slv_wdata_r_internal[11];
+                      rxdfetap12hold                 <= slv_wdata_r_internal[12];
+                      rxdfetap13hold                 <= slv_wdata_r_internal[13];
+                      rxdfetap14hold                 <= slv_wdata_r_internal[14];
+                      rxdfetap15hold                 <= slv_wdata_r_internal[15];
+                      rxoshold                       <= slv_wdata_r_internal[16];
+                      rxdfeagchold                   <= slv_wdata_r_internal[17];
+                      rxdfelfhold                    <= slv_wdata_r_internal[18];
+                      rxdfeuthold                    <= slv_wdata_r_internal[19];
+                      rxdfevphold                    <= slv_wdata_r_internal[20];
+                      end
+
+            // WRITE assignments for signal block 6
+            'hc1    : begin // @ address = 0x04
+                      rxpolarity_6                   <= slv_wdata_r_internal[0];
+                      end
+            'hc2    : begin // @ address = 0x08
+                      rxlpmen                        <= slv_wdata_r_internal[0];
+                      end
+            'hc3    : begin // @ address = 0x0C
+                      rxdfelpmreset                  <= slv_wdata_r_internal[0];
+                      end
+            'hc5    : begin // @ address = 0x14
+                      rxdfetap2hold                  <= slv_wdata_r_internal[2];
+                      rxdfetap3hold                  <= slv_wdata_r_internal[3];
+                      rxdfetap4hold                  <= slv_wdata_r_internal[4];
+                      rxdfetap5hold                  <= slv_wdata_r_internal[5];
+                      rxdfetap6hold                  <= slv_wdata_r_internal[6];
+                      rxdfetap7hold                  <= slv_wdata_r_internal[7];
+                      rxdfetap8hold                  <= slv_wdata_r_internal[8];
+                      rxdfetap9hold                  <= slv_wdata_r_internal[9];
+                      rxdfetap10hold                 <= slv_wdata_r_internal[10];
+                      rxdfetap11hold                 <= slv_wdata_r_internal[11];
+                      rxdfetap12hold                 <= slv_wdata_r_internal[12];
+                      rxdfetap13hold                 <= slv_wdata_r_internal[13];
+                      rxdfetap14hold                 <= slv_wdata_r_internal[14];
+                      rxdfetap15hold                 <= slv_wdata_r_internal[15];
+                      rxoshold                       <= slv_wdata_r_internal[16];
+                      rxdfeagchold                   <= slv_wdata_r_internal[17];
+                      rxdfelfhold                    <= slv_wdata_r_internal[18];
+                      rxdfeuthold                    <= slv_wdata_r_internal[19];
+                      rxdfevphold                    <= slv_wdata_r_internal[20];
+                      end
+
+            // WRITE assignments for signal block 7
+            'he1    : begin // @ address = 0x04
+                      rxpolarity_7                   <= slv_wdata_r_internal[0];
+                      end
+            'he2    : begin // @ address = 0x08
+                      rxlpmen                        <= slv_wdata_r_internal[0];
+                      end
+            'he3    : begin // @ address = 0x0C
+                      rxdfelpmreset                  <= slv_wdata_r_internal[0];
+                      end
+            'he5    : begin // @ address = 0x14
                       rxdfetap2hold                  <= slv_wdata_r_internal[2];
                       rxdfetap3hold                  <= slv_wdata_r_internal[3];
                       rxdfetap4hold                  <= slv_wdata_r_internal[4];
@@ -372,6 +594,216 @@ module jesd204_phy_0_transDbgCtrl_rx #(
                slv_rdata[0]         <= rxdfelpmreset;
                end
      'h25    : begin // @ address = 0x14
+               slv_rdata[2]         <= rxdfetap2hold;
+               slv_rdata[3]         <= rxdfetap3hold;
+               slv_rdata[4]         <= rxdfetap4hold;
+               slv_rdata[5]         <= rxdfetap5hold;
+               slv_rdata[6]         <= rxdfetap6hold;
+               slv_rdata[7]         <= rxdfetap7hold;
+               slv_rdata[8]         <= rxdfetap8hold;
+               slv_rdata[9]         <= rxdfetap9hold;
+               slv_rdata[10]        <= rxdfetap10hold;
+               slv_rdata[11]        <= rxdfetap11hold;
+               slv_rdata[12]        <= rxdfetap12hold;
+               slv_rdata[13]        <= rxdfetap13hold;
+               slv_rdata[14]        <= rxdfetap14hold;
+               slv_rdata[15]        <= rxdfetap15hold;
+               slv_rdata[16]        <= rxoshold;
+               slv_rdata[17]        <= rxdfeagchold;
+               slv_rdata[18]        <= rxdfelfhold;
+               slv_rdata[19]        <= rxdfeuthold;
+               slv_rdata[20]        <= rxdfevphold;
+               end
+
+      // READ assignments for signal block 2
+     'h40    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'h41    : begin // @ address = 0x04
+               slv_rdata[0]         <= rxpolarity_2;
+               end
+     'h42    : begin // @ address = 0x08
+               slv_rdata[0]         <= rxlpmen;
+               end
+     'h43    : begin // @ address = 0x0C
+               slv_rdata[0]         <= rxdfelpmreset;
+               end
+     'h45    : begin // @ address = 0x14
+               slv_rdata[2]         <= rxdfetap2hold;
+               slv_rdata[3]         <= rxdfetap3hold;
+               slv_rdata[4]         <= rxdfetap4hold;
+               slv_rdata[5]         <= rxdfetap5hold;
+               slv_rdata[6]         <= rxdfetap6hold;
+               slv_rdata[7]         <= rxdfetap7hold;
+               slv_rdata[8]         <= rxdfetap8hold;
+               slv_rdata[9]         <= rxdfetap9hold;
+               slv_rdata[10]        <= rxdfetap10hold;
+               slv_rdata[11]        <= rxdfetap11hold;
+               slv_rdata[12]        <= rxdfetap12hold;
+               slv_rdata[13]        <= rxdfetap13hold;
+               slv_rdata[14]        <= rxdfetap14hold;
+               slv_rdata[15]        <= rxdfetap15hold;
+               slv_rdata[16]        <= rxoshold;
+               slv_rdata[17]        <= rxdfeagchold;
+               slv_rdata[18]        <= rxdfelfhold;
+               slv_rdata[19]        <= rxdfeuthold;
+               slv_rdata[20]        <= rxdfevphold;
+               end
+
+      // READ assignments for signal block 3
+     'h60    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'h61    : begin // @ address = 0x04
+               slv_rdata[0]         <= rxpolarity_3;
+               end
+     'h62    : begin // @ address = 0x08
+               slv_rdata[0]         <= rxlpmen;
+               end
+     'h63    : begin // @ address = 0x0C
+               slv_rdata[0]         <= rxdfelpmreset;
+               end
+     'h65    : begin // @ address = 0x14
+               slv_rdata[2]         <= rxdfetap2hold;
+               slv_rdata[3]         <= rxdfetap3hold;
+               slv_rdata[4]         <= rxdfetap4hold;
+               slv_rdata[5]         <= rxdfetap5hold;
+               slv_rdata[6]         <= rxdfetap6hold;
+               slv_rdata[7]         <= rxdfetap7hold;
+               slv_rdata[8]         <= rxdfetap8hold;
+               slv_rdata[9]         <= rxdfetap9hold;
+               slv_rdata[10]        <= rxdfetap10hold;
+               slv_rdata[11]        <= rxdfetap11hold;
+               slv_rdata[12]        <= rxdfetap12hold;
+               slv_rdata[13]        <= rxdfetap13hold;
+               slv_rdata[14]        <= rxdfetap14hold;
+               slv_rdata[15]        <= rxdfetap15hold;
+               slv_rdata[16]        <= rxoshold;
+               slv_rdata[17]        <= rxdfeagchold;
+               slv_rdata[18]        <= rxdfelfhold;
+               slv_rdata[19]        <= rxdfeuthold;
+               slv_rdata[20]        <= rxdfevphold;
+               end
+
+      // READ assignments for signal block 4
+     'h80    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'h81    : begin // @ address = 0x04
+               slv_rdata[0]         <= rxpolarity_4;
+               end
+     'h82    : begin // @ address = 0x08
+               slv_rdata[0]         <= rxlpmen;
+               end
+     'h83    : begin // @ address = 0x0C
+               slv_rdata[0]         <= rxdfelpmreset;
+               end
+     'h85    : begin // @ address = 0x14
+               slv_rdata[2]         <= rxdfetap2hold;
+               slv_rdata[3]         <= rxdfetap3hold;
+               slv_rdata[4]         <= rxdfetap4hold;
+               slv_rdata[5]         <= rxdfetap5hold;
+               slv_rdata[6]         <= rxdfetap6hold;
+               slv_rdata[7]         <= rxdfetap7hold;
+               slv_rdata[8]         <= rxdfetap8hold;
+               slv_rdata[9]         <= rxdfetap9hold;
+               slv_rdata[10]        <= rxdfetap10hold;
+               slv_rdata[11]        <= rxdfetap11hold;
+               slv_rdata[12]        <= rxdfetap12hold;
+               slv_rdata[13]        <= rxdfetap13hold;
+               slv_rdata[14]        <= rxdfetap14hold;
+               slv_rdata[15]        <= rxdfetap15hold;
+               slv_rdata[16]        <= rxoshold;
+               slv_rdata[17]        <= rxdfeagchold;
+               slv_rdata[18]        <= rxdfelfhold;
+               slv_rdata[19]        <= rxdfeuthold;
+               slv_rdata[20]        <= rxdfevphold;
+               end
+
+      // READ assignments for signal block 5
+     'ha0    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'ha1    : begin // @ address = 0x04
+               slv_rdata[0]         <= rxpolarity_5;
+               end
+     'ha2    : begin // @ address = 0x08
+               slv_rdata[0]         <= rxlpmen;
+               end
+     'ha3    : begin // @ address = 0x0C
+               slv_rdata[0]         <= rxdfelpmreset;
+               end
+     'ha5    : begin // @ address = 0x14
+               slv_rdata[2]         <= rxdfetap2hold;
+               slv_rdata[3]         <= rxdfetap3hold;
+               slv_rdata[4]         <= rxdfetap4hold;
+               slv_rdata[5]         <= rxdfetap5hold;
+               slv_rdata[6]         <= rxdfetap6hold;
+               slv_rdata[7]         <= rxdfetap7hold;
+               slv_rdata[8]         <= rxdfetap8hold;
+               slv_rdata[9]         <= rxdfetap9hold;
+               slv_rdata[10]        <= rxdfetap10hold;
+               slv_rdata[11]        <= rxdfetap11hold;
+               slv_rdata[12]        <= rxdfetap12hold;
+               slv_rdata[13]        <= rxdfetap13hold;
+               slv_rdata[14]        <= rxdfetap14hold;
+               slv_rdata[15]        <= rxdfetap15hold;
+               slv_rdata[16]        <= rxoshold;
+               slv_rdata[17]        <= rxdfeagchold;
+               slv_rdata[18]        <= rxdfelfhold;
+               slv_rdata[19]        <= rxdfeuthold;
+               slv_rdata[20]        <= rxdfevphold;
+               end
+
+      // READ assignments for signal block 6
+     'hc0    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'hc1    : begin // @ address = 0x04
+               slv_rdata[0]         <= rxpolarity_6;
+               end
+     'hc2    : begin // @ address = 0x08
+               slv_rdata[0]         <= rxlpmen;
+               end
+     'hc3    : begin // @ address = 0x0C
+               slv_rdata[0]         <= rxdfelpmreset;
+               end
+     'hc5    : begin // @ address = 0x14
+               slv_rdata[2]         <= rxdfetap2hold;
+               slv_rdata[3]         <= rxdfetap3hold;
+               slv_rdata[4]         <= rxdfetap4hold;
+               slv_rdata[5]         <= rxdfetap5hold;
+               slv_rdata[6]         <= rxdfetap6hold;
+               slv_rdata[7]         <= rxdfetap7hold;
+               slv_rdata[8]         <= rxdfetap8hold;
+               slv_rdata[9]         <= rxdfetap9hold;
+               slv_rdata[10]        <= rxdfetap10hold;
+               slv_rdata[11]        <= rxdfetap11hold;
+               slv_rdata[12]        <= rxdfetap12hold;
+               slv_rdata[13]        <= rxdfetap13hold;
+               slv_rdata[14]        <= rxdfetap14hold;
+               slv_rdata[15]        <= rxdfetap15hold;
+               slv_rdata[16]        <= rxoshold;
+               slv_rdata[17]        <= rxdfeagchold;
+               slv_rdata[18]        <= rxdfelfhold;
+               slv_rdata[19]        <= rxdfeuthold;
+               slv_rdata[20]        <= rxdfevphold;
+               end
+
+      // READ assignments for signal block 7
+     'he0    : begin // @ address = 0x00
+               slv_rdata[7:0]       <= 'd0; // gt_interface_sel is an external select
+               end
+     'he1    : begin // @ address = 0x04
+               slv_rdata[0]         <= rxpolarity_7;
+               end
+     'he2    : begin // @ address = 0x08
+               slv_rdata[0]         <= rxlpmen;
+               end
+     'he3    : begin // @ address = 0x0C
+               slv_rdata[0]         <= rxdfelpmreset;
+               end
+     'he5    : begin // @ address = 0x14
                slv_rdata[2]         <= rxdfetap2hold;
                slv_rdata[3]         <= rxdfetap3hold;
                slv_rdata[4]         <= rxdfetap4hold;

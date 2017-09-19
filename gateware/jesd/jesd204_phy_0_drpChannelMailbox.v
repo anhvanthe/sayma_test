@@ -86,6 +86,66 @@ module jesd204_phy_0_drpChannelMailbox #(
    input       [15:0]                     drp1_do,
    input                                  drp1_rdy,
 
+   // DRP interface 2
+   output      [C_S_DRP_ADDR_WIDTH-1:0]   drp2_addr,
+   output      [15:0]                     drp2_di,
+   output                                 drp2_we,
+   output                                 drp2_en,
+   output                                 drp2_rst,
+                                             
+   input       [15:0]                     drp2_do,
+   input                                  drp2_rdy,
+
+   // DRP interface 3
+   output      [C_S_DRP_ADDR_WIDTH-1:0]   drp3_addr,
+   output      [15:0]                     drp3_di,
+   output                                 drp3_we,
+   output                                 drp3_en,
+   output                                 drp3_rst,
+                                             
+   input       [15:0]                     drp3_do,
+   input                                  drp3_rdy,
+
+   // DRP interface 4
+   output      [C_S_DRP_ADDR_WIDTH-1:0]   drp4_addr,
+   output      [15:0]                     drp4_di,
+   output                                 drp4_we,
+   output                                 drp4_en,
+   output                                 drp4_rst,
+                                             
+   input       [15:0]                     drp4_do,
+   input                                  drp4_rdy,
+
+   // DRP interface 5
+   output      [C_S_DRP_ADDR_WIDTH-1:0]   drp5_addr,
+   output      [15:0]                     drp5_di,
+   output                                 drp5_we,
+   output                                 drp5_en,
+   output                                 drp5_rst,
+                                             
+   input       [15:0]                     drp5_do,
+   input                                  drp5_rdy,
+
+   // DRP interface 6
+   output      [C_S_DRP_ADDR_WIDTH-1:0]   drp6_addr,
+   output      [15:0]                     drp6_di,
+   output                                 drp6_we,
+   output                                 drp6_en,
+   output                                 drp6_rst,
+                                             
+   input       [15:0]                     drp6_do,
+   input                                  drp6_rdy,
+
+   // DRP interface 7
+   output      [C_S_DRP_ADDR_WIDTH-1:0]   drp7_addr,
+   output      [15:0]                     drp7_di,
+   output                                 drp7_we,
+   output                                 drp7_en,
+   output                                 drp7_rst,
+                                             
+   input       [15:0]                     drp7_do,
+   input                                  drp7_rdy,
+
    // basic register interface
    input                                  slv_rden,
    input                                  slv_wren,
@@ -102,7 +162,7 @@ module jesd204_phy_0_drpChannelMailbox #(
   // Parameters
   //----------------------------------------------------------------------------
   localparam ADDR_STUFF_ZERO   = 32 - C_S_DRP_ADDR_WIDTH;
-  localparam C_S_NUM_DRP_WIDTH = 1;
+  localparam C_S_NUM_DRP_WIDTH = 3;
   
   //----------------------------------------------------------------------------
   // Address map for control logic
@@ -307,6 +367,12 @@ module jesd204_phy_0_drpChannelMailbox #(
           case (drp_if_select)
           'd0   : drp_read_data <= drp0_do;
           'd1   : drp_read_data <= drp1_do;
+          'd2   : drp_read_data <= drp2_do;
+          'd3   : drp_read_data <= drp3_do;
+          'd4   : drp_read_data <= drp4_do;
+          'd5   : drp_read_data <= drp5_do;
+          'd6   : drp_read_data <= drp6_do;
+          'd7   : drp_read_data <= drp7_do;
           default : drp_read_data <= drp0_do; // tie default to one of the if
           endcase
         end
@@ -319,6 +385,12 @@ module jesd204_phy_0_drpChannelMailbox #(
     case (drp_if_select)
     'd0       : selected_rdy_drp = drp0_rdy;
     'd1       : selected_rdy_drp = drp1_rdy;
+    'd2       : selected_rdy_drp = drp2_rdy;
+    'd3       : selected_rdy_drp = drp3_rdy;
+    'd4       : selected_rdy_drp = drp4_rdy;
+    'd5       : selected_rdy_drp = drp5_rdy;
+    'd6       : selected_rdy_drp = drp6_rdy;
+    'd7       : selected_rdy_drp = drp7_rdy;
     default   : selected_rdy_drp = 1'd0; // tie default to one of the if
     endcase
     end
@@ -348,6 +420,84 @@ module jesd204_phy_0_drpChannelMailbox #(
   assign drp1_we   = do_write_drp  & (drp_if_select==1); 
   assign drp1_en   = (do_read_drp | do_write_drp) & (drp_if_select==1); 
   assign drp1_rst  = drp_reset & (drp_if_select==1);
+  
+  //---------------------------------------------------------------------------
+  // DRP interface 2
+  // Note drp_int_addr, drp_write_data, drp_if_select, drp_reset all exist
+  // in the AXI domain and must have appropiate constrains for systhesis.
+  // This implementation minimised the number of flops required, as this data
+  // is static when used for the actual DRP access.
+  //---------------------------------------------------------------------------
+  assign drp2_addr = drp_int_addr;
+  assign drp2_di   = drp_write_data; 
+  assign drp2_we   = do_write_drp  & (drp_if_select==2); 
+  assign drp2_en   = (do_read_drp | do_write_drp) & (drp_if_select==2); 
+  assign drp2_rst  = drp_reset & (drp_if_select==2);
+  
+  //---------------------------------------------------------------------------
+  // DRP interface 3
+  // Note drp_int_addr, drp_write_data, drp_if_select, drp_reset all exist
+  // in the AXI domain and must have appropiate constrains for systhesis.
+  // This implementation minimised the number of flops required, as this data
+  // is static when used for the actual DRP access.
+  //---------------------------------------------------------------------------
+  assign drp3_addr = drp_int_addr;
+  assign drp3_di   = drp_write_data; 
+  assign drp3_we   = do_write_drp  & (drp_if_select==3); 
+  assign drp3_en   = (do_read_drp | do_write_drp) & (drp_if_select==3); 
+  assign drp3_rst  = drp_reset & (drp_if_select==3);
+  
+  //---------------------------------------------------------------------------
+  // DRP interface 4
+  // Note drp_int_addr, drp_write_data, drp_if_select, drp_reset all exist
+  // in the AXI domain and must have appropiate constrains for systhesis.
+  // This implementation minimised the number of flops required, as this data
+  // is static when used for the actual DRP access.
+  //---------------------------------------------------------------------------
+  assign drp4_addr = drp_int_addr;
+  assign drp4_di   = drp_write_data; 
+  assign drp4_we   = do_write_drp  & (drp_if_select==4); 
+  assign drp4_en   = (do_read_drp | do_write_drp) & (drp_if_select==4); 
+  assign drp4_rst  = drp_reset & (drp_if_select==4);
+  
+  //---------------------------------------------------------------------------
+  // DRP interface 5
+  // Note drp_int_addr, drp_write_data, drp_if_select, drp_reset all exist
+  // in the AXI domain and must have appropiate constrains for systhesis.
+  // This implementation minimised the number of flops required, as this data
+  // is static when used for the actual DRP access.
+  //---------------------------------------------------------------------------
+  assign drp5_addr = drp_int_addr;
+  assign drp5_di   = drp_write_data; 
+  assign drp5_we   = do_write_drp  & (drp_if_select==5); 
+  assign drp5_en   = (do_read_drp | do_write_drp) & (drp_if_select==5); 
+  assign drp5_rst  = drp_reset & (drp_if_select==5);
+  
+  //---------------------------------------------------------------------------
+  // DRP interface 6
+  // Note drp_int_addr, drp_write_data, drp_if_select, drp_reset all exist
+  // in the AXI domain and must have appropiate constrains for systhesis.
+  // This implementation minimised the number of flops required, as this data
+  // is static when used for the actual DRP access.
+  //---------------------------------------------------------------------------
+  assign drp6_addr = drp_int_addr;
+  assign drp6_di   = drp_write_data; 
+  assign drp6_we   = do_write_drp  & (drp_if_select==6); 
+  assign drp6_en   = (do_read_drp | do_write_drp) & (drp_if_select==6); 
+  assign drp6_rst  = drp_reset & (drp_if_select==6);
+  
+  //---------------------------------------------------------------------------
+  // DRP interface 7
+  // Note drp_int_addr, drp_write_data, drp_if_select, drp_reset all exist
+  // in the AXI domain and must have appropiate constrains for systhesis.
+  // This implementation minimised the number of flops required, as this data
+  // is static when used for the actual DRP access.
+  //---------------------------------------------------------------------------
+  assign drp7_addr = drp_int_addr;
+  assign drp7_di   = drp_write_data; 
+  assign drp7_we   = do_write_drp  & (drp_if_select==7); 
+  assign drp7_en   = (do_read_drp | do_write_drp) & (drp_if_select==7); 
+  assign drp7_rst  = drp_reset & (drp_if_select==7);
   
 
 endmodule

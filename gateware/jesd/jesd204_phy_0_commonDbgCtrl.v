@@ -65,6 +65,10 @@ module jesd204_phy_0_commonDbgCtrl #(
    output reg                             qpll0_pd_0 = 0,
    output reg                             qpll1_pd_0 = 1,
 
+   // IO for bank 1 
+   output reg                             qpll0_pd_1 = 0,
+   output reg                             qpll1_pd_1 = 1,
+
  
    // basic register interface
    input                                  slv_rden,
@@ -92,6 +96,9 @@ module jesd204_phy_0_commonDbgCtrl #(
         qpll0_pd_0                     <= 1'd0;
         qpll1_pd_0                     <= 1'd1;
 
+        qpll0_pd_1                     <= 1'd0;
+        qpll1_pd_1                     <= 1'd1;
+
  
       end 
       else begin    
@@ -104,6 +111,14 @@ module jesd204_phy_0_commonDbgCtrl #(
                       end
             'h2     : begin // @ address = 0x08
                       qpll1_pd_0                     <= slv_wdata[0];
+                      end
+
+            // WRITE assignments for signal block 1
+            'h21    : begin // @ address = 0x04
+                      qpll0_pd_1                     <= slv_wdata[0];
+                      end
+            'h22    : begin // @ address = 0x08
+                      qpll1_pd_1                     <= slv_wdata[0];
                       end
 
             endcase
@@ -127,6 +142,17 @@ module jesd204_phy_0_commonDbgCtrl #(
                end
      'h2     : begin // @ address = 0x08
                slv_rdata[0]         = qpll1_pd_0;
+               end
+
+     // READ assignments for signal block 1
+     'h20    : begin // @ address = 0x00
+               slv_rdata[7:0]       = 'd0; // cmm_interface_sel is an external select
+               end
+     'h21    : begin // @ address = 0x04
+               slv_rdata[0]         = qpll0_pd_1;
+               end
+     'h22    : begin // @ address = 0x08
+               slv_rdata[0]         = qpll1_pd_1;
                end
 
      default : slv_rdata            = 'd0;

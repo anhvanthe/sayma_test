@@ -76,6 +76,16 @@ module jesd204_phy_0_drpCommonMailbox #(
    input       [15:0]                     drp0_do,
    input                                  drp0_rdy,
 
+   // DRP interface 1
+   output      [C_S_DRP_ADDR_WIDTH-1:0]   drp1_addr,
+   output      [15:0]                     drp1_di,
+   output                                 drp1_we,
+   output                                 drp1_en,
+   output                                 drp1_rst,
+                                             
+   input       [15:0]                     drp1_do,
+   input                                  drp1_rdy,
+
    // basic register interface
    input                                  slv_rden,
    input                                  slv_wren,
@@ -296,6 +306,7 @@ module jesd204_phy_0_drpCommonMailbox #(
         if(selected_rdy_drp & (access_type==0)) begin
           case (drp_if_select)
           'd0   : drp_read_data <= drp0_do;
+          'd1   : drp_read_data <= drp1_do;
           default : drp_read_data <= drp0_do; // tie default to one of the if
           endcase
         end
@@ -307,6 +318,7 @@ module jesd204_phy_0_drpCommonMailbox #(
     begin
     case (drp_if_select)
     'd0       : selected_rdy_drp = drp0_rdy;
+    'd1       : selected_rdy_drp = drp1_rdy;
     default   : selected_rdy_drp = 1'd0; // tie default to one of the if
     endcase
     end
@@ -323,6 +335,19 @@ module jesd204_phy_0_drpCommonMailbox #(
   assign drp0_we   = do_write_drp  & (drp_if_select==0); 
   assign drp0_en   = (do_read_drp | do_write_drp) & (drp_if_select==0); 
   assign drp0_rst  = drp_reset & (drp_if_select==0);
+  
+  //---------------------------------------------------------------------------
+  // DRP interface 1
+  // Note drp_int_addr, drp_write_data, drp_if_select, drp_reset all exist
+  // in the AXI domain and must have appropiate constrains for systhesis.
+  // This implementation minimised the number of flops required, as this data
+  // is static when used for the actual DRP access.
+  //---------------------------------------------------------------------------
+  assign drp1_addr = drp_int_addr;
+  assign drp1_di   = drp_write_data; 
+  assign drp1_we   = do_write_drp  & (drp_if_select==1); 
+  assign drp1_en   = (do_read_drp | do_write_drp) & (drp_if_select==1); 
+  assign drp1_rst  = drp_reset & (drp_if_select==1);
   
 
 endmodule
