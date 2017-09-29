@@ -59,6 +59,10 @@ time.sleep(1)
 # show dac0 status
 dac1.print_status()
 
+# configure cosine
+#wb_amc.regs.cosine_amplitude(0x0000)
+#wb_amc.regs.cosine_frequency(0x00000000)
+
 # prbs test
 if len(sys.argv) > 1:
     if sys.argv[1] == "prbs":
