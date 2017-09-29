@@ -525,10 +525,10 @@ class JESDTestSoC(SoCCore):
             setattr(self.submodules, "dac"+str(dac)+"_control", control)
             core.register_jsync(platform.request("dac_sync", dac))
             self.comb += [
-                core.sink.converter0.eq(Cat(cosine.o, cosine.o)),
-                core.sink.converter1.eq(Cat(cosine.o, cosine.o)),
-                core.sink.converter2.eq(Cat(cosine.o, cosine.o)),
-                core.sink.converter3.eq(Cat(cosine.o, cosine.o))
+                core.sink.converter0.eq(Cat(cosine.o, cosine.o, cosine.o, cosine.o)),
+                core.sink.converter1.eq(Cat(cosine.o, cosine.o, cosine.o, cosine.o)),
+                core.sink.converter2.eq(Cat(cosine.o, cosine.o, cosine.o, cosine.o)),
+                core.sink.converter3.eq(Cat(cosine.o, cosine.o, cosine.o, cosine.o))
             ]
 
         jesd_dac0_phy0_counter = Signal(32)
