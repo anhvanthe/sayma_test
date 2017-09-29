@@ -14,6 +14,7 @@ from litex.soc.integration.soc_sdram import *
 from litex.soc.integration.builder import *
 from litex.soc.cores.uart import UARTWishboneBridge
 from litex.soc.interconnect import stream
+from litex.soc.cores.cordic import Cordic
 
 from litedram.modules import MT41J256M16
 from litedram.phy import kusddrphy
@@ -420,12 +421,32 @@ def get_phy_pads(jesd_pads, n):
     return PHYPads(jesd_pads.txp[n], jesd_pads.txn[n])
 
 
+class Cosine(Module, AutoCSR):
+    def __init__(self, width=16):
+        self._amplitude = CSRStorage(width)
+        self._frequency = CSRStorage(2*width)
+
+        self.submodules.cordic = cordic = Cordic(
+                width=width, widthz=2*width, guard=None, eval_mode="pipelined")
+
+        z = Signal(2*width)
+        self.sync += z.eq(z + self._frequency.storage)
+
+        self.comb += [
+                cordic.xi.eq(self._amplitude.storage),
+                cordic.yi.eq(0),
+                cordic.zi.eq(z)
+        ]
+        self.o = cordic.xo
+
+
 class JESDTestSoC(SoCCore):
     csr_map = {
-        "dac0_control": 20,
-        "dac0_core":    21,
-        "dac1_control": 22,
-        "dac1_core":    23,        
+        "cosine":       20, 
+        "dac0_control": 21,
+        "dac0_core":    22,
+        "dac1_control": 23,
+        "dac1_core":    24,
         "analyzer":     30
     }
     csr_map.update(SoCCore.csr_map)
@@ -477,6 +498,8 @@ class JESDTestSoC(SoCCore):
         ]
         platform.add_period_constraint(self.cd_jesd.clk, 1e9/refclk_freq)
 
+        self.submodules.cosine = cosine = ClockDomainsRenamer("jesd")(Cosine(16))
+
         for dac in range(2):
             jesd_pads = platform.request("dac_jesd", dac)
             phys = []
@@ -501,23 +524,11 @@ class JESDTestSoC(SoCCore):
             setattr(self.submodules, "dac"+str(dac)+"_core", core)
             setattr(self.submodules, "dac"+str(dac)+"_control", control)
             core.register_jsync(platform.request("dac_sync", dac))
-
-            # jesd pattern (ramp)
-            data0 = Signal(16)
-            data1 = Signal(16)
-            data2 = Signal(16)
-            data3 = Signal(16)
-            self.sync.jesd += [
-                data0.eq(data0 + 4096),   # freq = dacclk/32
-                data1.eq(data1 + 8192),   # freq = dacclk/16
-                data2.eq(data2 + 16384),  # freq = dacclk/8
-                data3.eq(data3 + 32768)   # freq = dacclk/4
-            ]
             self.comb += [
-                core.sink.converter0.eq(Cat(data0, data0)),
-                core.sink.converter1.eq(Cat(data1, data1)),
-                core.sink.converter2.eq(Cat(data2, data2)),
-                core.sink.converter3.eq(Cat(data3, data3))
+                core.sink.converter0.eq(Cat(cosine.o, cosine.o)),
+                core.sink.converter1.eq(Cat(cosine.o, cosine.o)),
+                core.sink.converter2.eq(Cat(cosine.o, cosine.o)),
+                core.sink.converter3.eq(Cat(cosine.o, cosine.o))
             ]
 
         jesd_dac0_phy0_counter = Signal(32)
