@@ -60,8 +60,8 @@ time.sleep(1)
 dac1.print_status()
 
 # configure cosine
-wb_amc.regs.cosine_amplitude(0x4db9)      # max (i.e. full DAC) amplitude
-wb_amc.regs.cosine_frequency(0x147ae147)  # 10 MHz minus 20 mHz
+wb_amc.regs.cosine_amplitude.write(0x4db9)      # max (i.e. full DAC) amplitude
+wb_amc.regs.cosine_frequency.write(0x147ae147)  # 20 MHz minus 20 mHz
 
 # prbs test
 if len(sys.argv) > 1:
