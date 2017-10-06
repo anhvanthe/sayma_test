@@ -14,6 +14,12 @@ wb_rtm.open()
 
 # # #
 
+# mezz io
+wb_rtm.regs.mezz0_io_out.write(0x0000)
+wb_rtm.regs.mezz1_io_out.write(0x0000)
+wb_rtm.regs.mezz2_io_out.write(0x0000)
+wb_rtm.regs.mezz3_io_out.write(0x0000)
+
 # jesd settings
 ps = JESD204BPhysicalSettings(l=8, m=4, n=16, np=16)
 ts = JESD204BTransportSettings(f=2, s=2, k=16, cs=0)
