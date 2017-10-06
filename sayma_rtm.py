@@ -84,10 +84,10 @@ _io = [
         IOStandard("LVDS_25")
     ),
 
-    ("mezz_io", 0, Pins("P1 M4 N4 N3 N2 P4 P3 R2 R1 R3 T2 U2 U1 V3 V2 T4"), IOStandard("LVCMOS25")),
-    ("mezz_io", 1, Pins("T3 U4 V4 P6 P5 U6 U5 R5 T5 R7 T7 U7 V6 V8 V7 R6"), IOStandard("LVCMOS25")),
-    ("mezz_io", 2, Pins("D11 C12 B12 A12 A13 A14 C14 B15 B14 A15 D13 C13 E13 D14 D15 E16"), IOStandard("LVCMOS25")),
-    ("mezz_io", 3, Pins("K5 J5 J4 K2 K1 K3 L2 L4 L3 L5 M5 M2 M1 M6 N6 N1"), IOStandard("LVCMOS25")),    
+    ("mezz_io", 0, Pins("P1 M4 N4 N3 N2 P4 P3 R2 R1 R3 T2 U2 U1 V3 V2 T4"), IOStandard("LVCMOS33")),
+    ("mezz_io", 1, Pins("T3 U4 V4 P6 P5 U6 U5 R5 T5 R7 T7 U7 V6 V8 V7 R6"), IOStandard("LVCMOS33")),
+    ("mezz_io", 2, Pins("D11 C12 B12 A12 A13 A14 C14 B15 B14 A15 D13 C13 E13 D14 D15 E16"), IOStandard("LVCMOS33")),
+    ("mezz_io", 3, Pins("K5 J5 J4 K2 K1 K3 L2 L4 L3 L5 M5 M2 M1 M6 N6 N1"), IOStandard("LVCMOS33")),
 ]
 
 
