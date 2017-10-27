@@ -84,10 +84,10 @@ _io = [
         IOStandard("LVDS_25")
     ),
 
-    ("mezz_io", 0, Pins("P1 M4 N4 N3 N2 P4 P3 R2 R1 R3 T2 U2 U1 V3 V2 T4"), IOStandard("LVCMOS33")),
-    ("mezz_io", 1, Pins("T3 U4 V4 P6 P5 U6 U5 R5 T5 R7 T7 U7 V6 V8 V7 R6"), IOStandard("LVCMOS33")),
-    ("mezz_io", 2, Pins("D11 C12 B12 A12 A13 A14 C14 B15 B14 A15 D13 C13 E13 D14 D15 E16"), IOStandard("LVCMOS33")),
-    ("mezz_io", 3, Pins("K5 J5 J4 K2 K1 K3 L2 L4 L3 L5 M5 M2 M1 M6 N6 N1"), IOStandard("LVCMOS33")),
+    ("mezz_io", 0, Pins("P1 M4 N4 N3 N2 P4 P3 R2 R1 R3 T2 U2 U1 V3 V2 T4"), IOStandard("LVCMOS25")),
+    ("mezz_io", 1, Pins("T3 U4 V4 P6 P5 U6 U5 R5 T5 R7 T7 U7 V6 V8 V7 R6"), IOStandard("LVCMOS25")),
+    ("mezz_io", 2, Pins("D11 C12 B12 A12 A13 A14 C14 B15 B14 A15 D13 C13 E13 D14 D15 E16"), IOStandard("LVCMOS25")),
+    ("mezz_io", 3, Pins("K5 J5 J4 K2 K1 K3 L2 L4 L3 L5 M5 M2 M1 M6 N6 N1"), IOStandard("LVCMOS25")),
 ]
 
 
@@ -157,16 +157,19 @@ def _build_version(with_time=True):
 
 class JESDTestSoC(SoCCore):
     csr_map = {
-        "hmc_spi":      20,
-        "hmc_spi_sel":  21,
-        "dac_reset":    22,
-        "dac0_spi":     23,
-        "dac1_spi":     24,
-        "mezz0_io":     25,
-        "mezz1_io":     26,
-        "mezz2_io":     27,
-        "mezz3_io":     28,        
-        "analyzer":     30,
+        "hmc_spi":          20,
+        "hmc_spi_sel":      21,
+        "dac_reset":        22,
+        "clk_src_ext_sel":  23,
+        "ref_clk_src_sel":  24,
+        "dac_clk_src_sel":  25,
+        "dac0_spi":         26,
+        "dac1_spi":         27,
+        "mezz0_io":         28,
+        "mezz1_io":         29,
+        "mezz2_io":         30,
+        "mezz3_io":         31,
+        "analyzer":         40,
     }
     csr_map.update(SoCCore.csr_map)
 
@@ -174,7 +177,7 @@ class JESDTestSoC(SoCCore):
         clk_freq = int(125e6)
         SoCCore.__init__(self, platform, clk_freq,
             cpu_type=None,
-            csr_data_width=32,
+            csr_data_width=32, csr_address_width=15,
             with_uart=False,
             ident="Sayma RTM JESD Test Design " + _build_version(),
             with_timer=False
@@ -186,12 +189,10 @@ class JESDTestSoC(SoCCore):
                                                   clk_freq, baudrate=115200))
         self.add_wb_master(self.cpu_or_bridge.wishbone)
 
-        # clock mux : 125MHz ext SMA clock to HMC830 input
-        self.comb += [
-            platform.request("clk_src_ext_sel").eq(1), # use ext clk from sma
-            platform.request("ref_clk_src_sel").eq(1),
-            platform.request("dac_clk_src_sel").eq(0), # use clk from dac_clk
-        ]
+        # clock muxes
+        self.submodules.clk_src_ext_sel = GPIOOut(platform.request("clk_src_ext_sel"))
+        self.submodules.ref_clk_src_sel = GPIOOut(platform.request("ref_clk_src_sel"))
+        self.submodules.dac_clk_src_sel = GPIOOut(platform.request("dac_clk_src_sel"))
 
         # hmc spi
         hmc_spi_pads = platform.request("hmc_spi")
