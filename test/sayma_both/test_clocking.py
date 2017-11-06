@@ -52,9 +52,9 @@ wb_rtm.open()
 # # #
 
 # clock muxes : 125MHz ext SMA clock to HMC830 input
-wb.rtm.regs.clk_src_ext_sel.write(1) # use ext clk from sma
-wb.rtm.regs.ref_clk_src_sel.write(1)
-wb.rtm.regs.dac_clk_src_sel.write(0) # use clk from dac_clk
+wb_rtm.regs.clk_src_ext_sel.write(1) # use ext clk from sma
+wb_rtm.regs.ref_clk_src_sel.write(1)
+wb_rtm.regs.dac_clk_src_sel.write(0) # use clk from dac_clk
 
 hmc830 = HMC830(wb_rtm.regs)
 hmc7043 = HMC7043(wb_rtm.regs)
