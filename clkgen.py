@@ -32,7 +32,8 @@ class ClkGenSoC(SoCCore):
 
         pll_locked = Signal()
         pll_fb = Signal()
-        pll_out = Signal()
+        pll_out1 = Signal()
+        pll_out2 = Signal()
         self.specials += [
             Instance("PLLE2_BASE",
                      p_STARTUP_WAIT="FALSE", o_LOCKED=pll_locked,
@@ -43,20 +44,26 @@ class ClkGenSoC(SoCCore):
                      i_CLKIN1=clk300_se, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
 
                      # 1.2GHz
-                     p_CLKOUT2_DIVIDE=1, p_CLKOUT2_PHASE=0.0,
-                     o_CLKOUT2=pll_out
+                     p_CLKOUT1_DIVIDE=1, p_CLKOUT1_PHASE=0.0,
+                     o_CLKOUT1=pll_out1,
+
+                     # 100MHz
+                     p_CLKOUT2_DIVIDE=12, p_CLKOUT2_PHASE=0.0,
+                     o_CLKOUT2=pll_out2,
             )
         ]
 
         user_sma_clock_pads = platform.request("user_sma_clock")
         self.specials += [
             Instance("OBUFDS",
-                i_I=pll_out,
+                i_I=pll_out1,
                 o_O=user_sma_clock_pads.p,
                 o_OB=user_sma_clock_pads.n
             )
         ]
 
+        user_sma_gpio_p = platform.request("user_sma_gpio_p")
+        self.comb += user_sma_gpio_p.eq(pll_out2)
 
 def main():
     soc = ClkGenSoC(kcu105.Platform())
