@@ -18,13 +18,17 @@ class ClkGenSoC(SoCCore):
             cpu_type=None,
             csr_data_width=32,
             with_uart=False,
-            ident="KCU105 1GHz Clock Generator",
+            ident="KCU105 1.2GHz Clock Generator",
             with_timer=False
         )
         self.submodules.crg = CRG(platform.request("clk125"))
         self.add_cpu_or_bridge(UARTWishboneBridge(platform.request("serial"),
                                                   clk_freq, baudrate=115200))
         self.add_wb_master(self.cpu_or_bridge.wishbone)
+
+        clk300 = platform.request("clk300")
+        clk300_se = Signal()
+        self.specials += Instance("IBUFDS", i_I=clk300.p, i_IB=clk300.n, o_O=clk300_se)
 
         pll_locked = Signal()
         pll_fb = Signal()
@@ -33,12 +37,12 @@ class ClkGenSoC(SoCCore):
             Instance("PLLE2_BASE",
                      p_STARTUP_WAIT="FALSE", o_LOCKED=pll_locked,
 
-                     # VCO @ 1GHz
-                     p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=5.0,
-                     p_CLKFBOUT_MULT=8, p_DIVCLK_DIVIDE=1,
-                     i_CLKIN1=ClockSignal(), i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
+                     # VCO @ 1.2GHz
+                     p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=3.33,
+                     p_CLKFBOUT_MULT=4, p_DIVCLK_DIVIDE=1,
+                     i_CLKIN1=clk300_se, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
 
-                     # 1GHz
+                     # 1.2GHz
                      p_CLKOUT2_DIVIDE=1, p_CLKOUT2_PHASE=0.0,
                      o_CLKOUT2=pll_out
             )

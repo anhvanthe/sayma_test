@@ -13,8 +13,10 @@ if len(sys.argv) < 2:
     exit()
 
 
-# hmc830 config, 100MHz input, 1GHz output
-# fvco = (refclk / r_divider) * n_divider
+# FIXME: 100MHz input --> 1.2GHz output
+
+# hmc830 config, 100MHz input, 1GHz outpsut
+# fvco = (refclk / r_divider) * n_dividser
 # fout = fvco/2 
 hmc830_config = [
     (0x0, 0x20),
@@ -52,9 +54,9 @@ wb_rtm.open()
 # # #
 
 # clock muxes : 125MHz ext SMA clock to HMC830 input
-wb_rtm.regs.clk_src_ext_sel.write(1) # use ext clk from sma
-wb_rtm.regs.ref_clk_src_sel.write(1)
-wb_rtm.regs.dac_clk_src_sel.write(0) # use clk from dac_clk
+wb_rtm.regs.clk_src_ext_sel_out.write(1) # use ext clk from sma
+wb_rtm.regs.ref_clk_src_sel_out.write(1)
+wb_rtm.regs.dac_clk_src_sel_out.write(0) # use clk from dac_clk
 
 hmc830 = HMC830(wb_rtm.regs)
 hmc7043 = HMC7043(wb_rtm.regs)
