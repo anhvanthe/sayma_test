@@ -358,6 +358,7 @@ class SDRAMTestSoC(SoCSDRAM):
         self.register_sdram(self.ddrphy,
                             sdram_module.geom_settings,
                             sdram_module.timing_settings)
+        self.add_constant("KUSDDRPHY", None)
 
         # sdram bist
         if not with_cpu:
@@ -804,6 +805,7 @@ class FullTestSoC(SoCSDRAM):
         self.register_sdram(self.ddrphy,
                             sdram_module.geom_settings,
                             sdram_module.timing_settings)
+        self.add_constant("KUSDDRPHY", None)
        
         # amc rtm link
         serwb_pll = SERWBPLL(125e6, 1.25e9, vco_div=2)
