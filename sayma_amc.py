@@ -827,7 +827,8 @@ class FullTestSoC(SoCSDRAM):
         # wishbone slave
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
         self.submodules += serwb_core
-        self.add_wb_slave(mem_decoder(self.mem_map["serwb"]), serwb_core.etherbone.wishbone.bus)  
+        self.add_wb_slave(mem_decoder(self.mem_map["serwb"]), serwb_core.etherbone.wishbone.bus)
+        self.register_mem("serwb", self.mem_map["serwb"], serwb_core.etherbone.wishbone.bus, 8192)
 
         # leds
         led_counter = Signal(32)

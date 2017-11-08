@@ -277,11 +277,11 @@ class SERWBTestSoC(SoCCore):
     csr_map.update(SoCCore.csr_map)
 
     mem_map = {
-        "serwb": 0x20000000,  # (default shadow @0xa0000000)
+        "serwb": 0x30000000,
     }
     mem_map.update(SoCCore.mem_map)
 
-    def __init__(self, platform, with_analyzer=True):
+    def __init__(self, platform, with_analyzer=False):
         clk_freq = int(125e6)
         SoCCore.__init__(self, platform, clk_freq,
             cpu_type=None,

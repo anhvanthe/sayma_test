@@ -7,6 +7,7 @@
 #include <console.h>
 
 #include "sdram.h"
+#include "serwb.h"
 
 static char *readstr(void)
 {
@@ -72,8 +73,15 @@ static void help(void)
 	puts("Available commands:");
 	puts("help        - this command");
 	puts("reboot      - reboot CPU");
+#ifdef CSR_SDRAM_BASE
 	puts("meminit     - run a memory initialization");
 	puts("memtest     - run a memory test");
+#endif
+#ifdef CSR_SERWB_PHY_BASE
+    puts("serwb_init  - (re)initialize SERWB link");
+	puts("serwb_test  - test SERWB link");
+	puts("serwb_dump  - dump SERBWB remote memory");
+#endif
 }
 
 static void reboot(void)
@@ -93,10 +101,20 @@ static void console_service(void)
 		help();
 	else if(strcmp(token, "reboot") == 0)
 		reboot();
+#ifdef CSR_SDRAM_BASE
 	else if(strcmp(token, "meminit") == 0)
-		sdrinit();	
+		sdrinit();
 	else if(strcmp(token, "memtest") == 0)
 		memtest();
+#endif
+#ifdef CSR_SERWB_PHY_BASE
+	else if(strcmp(token, "serwb_init") == 0)
+		serwb_init();
+	else if(strcmp(token, "serwb_test") == 0)
+		serwb_test();
+	else if(strcmp(token, "serwb_dump") == 0)
+		serwb_dump();
+#endif
 	prompt();
 }
 
