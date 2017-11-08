@@ -753,6 +753,93 @@ class SERWBTestSoC(SoCCore):
             self.analyzer.export_csv(vns, "test/sayma_amc/analyzer.csv")
 
 
+class FullTestSoC(SoCSDRAM):
+    csr_map = {
+        "ddrphy":    20,
+        "serwb_phy": 21,
+        "analyzer":  30
+    }
+    csr_map.update(SoCSDRAM.csr_map)
+
+    mem_map = {
+        "firmware_ram": 0x20000000,
+        "serwb":        0x30000000
+    }
+    mem_map.update(SoCSDRAM.mem_map)
+
+    def __init__(self, platform):
+        clk_freq = int(125e6)
+        SoCSDRAM.__init__(self, platform, clk_freq,
+            cpu_type="lm32",
+            integrated_rom_size=0x8000,
+            integrated_sram_size=0x8000,
+            csr_data_width=8,
+            l2_size=128,
+            with_uart=True,
+            ident="Sayma Full Test Design " + _build_version(),
+            with_timer=True
+        )
+        self.submodules.crg = _CRG(platform)
+
+        self.crg.cd_sys.clk.attr.add("keep")
+        platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
+
+        # amc <--> rtm usr_uart / aux_uart redirection
+        aux_uart_pads = platform.request("serial", 1)
+        self.comb += [
+            aux_uart_pads.tx.eq(platform.request("usr_uart_p")),
+            platform.request("usr_uart_n").eq(aux_uart_pads.rx)
+        ]
+
+        # firmware
+        firmware_ram_size = 0x10000
+        firmware_filename = "firmware/firmware.bin"
+        self.submodules.firmware_ram = firmware.FirmwareROM(firmware_ram_size, firmware_filename)
+        self.register_mem("firmware_ram", self.mem_map["firmware_ram"], self.firmware_ram.bus, firmware_ram_size)
+        self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["firmware_ram"])
+
+        # sdram
+        self.submodules.ddrphy = kusddrphy.KUSDDRPHY(platform.request("ddram_64"))
+        sdram_module = MT41J256M16(self.clk_freq, "1:4")
+        self.register_sdram(self.ddrphy,
+                            sdram_module.geom_settings,
+                            sdram_module.timing_settings)
+       
+        # amc rtm link
+        serwb_pll = SERWBPLL(125e6, 1.25e9, vco_div=2)
+        self.comb += serwb_pll.refclk.eq(ClockSignal())
+        self.submodules += serwb_pll
+
+        serwb_phy = SERWBPHY(platform.device, serwb_pll, platform.request("serwb"), mode="master")
+        self.submodules.serwb_phy = serwb_phy
+
+        serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
+        serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
+        serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 32.0),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1.6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 6.4)
+        self.platform.add_false_path_constraints(
+            self.crg.cd_sys.clk,
+            serwb_phy.serdes.cd_serwb_serdes.clk,
+            serwb_phy.serdes.cd_serwb_serdes_5x.clk)
+
+        # wishbone slave
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
+        self.submodules += serwb_core
+        self.add_wb_slave(mem_decoder(self.mem_map["serwb"]), serwb_core.etherbone.wishbone.bus)  
+
+        # leds
+        led_counter = Signal(32)
+        self.sync += led_counter.eq(led_counter + 1)
+        self.comb += [
+            platform.request("user_led", 0).eq(led_counter[26]),
+            platform.request("user_led", 1).eq(led_counter[27]),
+            platform.request("user_led", 2).eq(led_counter[28]),
+            platform.request("user_led", 3).eq(led_counter[29])
+        ]
+
+
 def main():
     platform = Platform()
     compile_gateware = True
@@ -774,6 +861,8 @@ def main():
         soc = DRTIOTestSoC(platform)
     elif sys.argv[1] == "serwb":
         soc = SERWBTestSoC(platform)
+    elif sys.argv[1] == "full":
+         soc = FullTestSoC(platform)
     builder = Builder(soc, output_dir="build_sayma_amc", csr_csv="test/sayma_amc/csr.csv",
         compile_gateware=compile_gateware)
     vns = builder.build()
