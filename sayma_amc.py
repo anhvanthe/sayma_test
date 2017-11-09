@@ -30,8 +30,8 @@ from litejesd204b.core import LiteJESD204BCoreTXControl
 
 from drtio.gth_ultrascale import GTHChannelPLL, GTHQuadPLL, GTH
 
-from serwb.phy import SERWBPLL, SERWBPHY
-from serwb.core import SERWBCore
+from liteiclink.serwb.phy import SERWBPLL, SERWBPHY
+from liteiclink.serwb.core import SERWBCore
 
 from gateware import firmware
 

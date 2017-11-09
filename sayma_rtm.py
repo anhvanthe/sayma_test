@@ -17,8 +17,8 @@ from litex.soc.cores.gpio import GPIOOut
 from litex.soc.interconnect import stream
 from litex.soc.interconnect import wishbone
 
-from serwb.phy import SERWBPLL, SERWBPHY
-from serwb.core import SERWBCore
+from liteiclink.serwb.phy import SERWBPLL, SERWBPHY
+from liteiclink.serwb.core import SERWBCore
 
 from litescope import LiteScopeAnalyzer
 
