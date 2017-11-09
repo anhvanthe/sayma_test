@@ -311,9 +311,9 @@ class SERWBTestSoC(SoCCore):
         serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 32.0),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1.6),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 6.4)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 1e9/31.25e6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1e9/625e6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 1e9/156.25e6)
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
             serwb_phy.serdes.cd_serwb_serdes.clk,

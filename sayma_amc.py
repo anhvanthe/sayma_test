@@ -639,7 +639,7 @@ class SERWBTestSoC(SoCCore):
     csr_map.update(SoCCore.csr_map)
 
     mem_map = {
-        "serwb": 0x20000000,  # (default shadow @0xa0000000)
+        "serwb": 0x30000000,
     }
     mem_map.update(SoCCore.mem_map)
 
@@ -680,9 +680,9 @@ class SERWBTestSoC(SoCCore):
         serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 32.0),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1.6),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 6.4)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 1e9/31.25e6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1e9/625e6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 1e9/156.25e6)
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
             serwb_phy.serdes.cd_serwb_serdes.clk,
@@ -692,7 +692,7 @@ class SERWBTestSoC(SoCCore):
         # wishbone slave
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
         self.submodules += serwb_core
-        self.add_wb_slave(mem_decoder(self.mem_map["serwb"]), serwb_core.etherbone.wishbone.bus)
+        self.register_mem("serwb", self.mem_map["serwb"], serwb_core.etherbone.wishbone.bus, 8192)
 
         # analyzer
         if with_analyzer:
@@ -818,9 +818,9 @@ class FullTestSoC(SoCSDRAM):
         serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 32.0),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1.6),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 6.4)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 1e9/31.25e6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1e9/625e6),
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 1e9/156.25e6)
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
             serwb_phy.serdes.cd_serwb_serdes.clk,
@@ -829,7 +829,6 @@ class FullTestSoC(SoCSDRAM):
         # wishbone slave
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
         self.submodules += serwb_core
-        self.add_wb_slave(mem_decoder(self.mem_map["serwb"]), serwb_core.etherbone.wishbone.bus)
         self.register_mem("serwb", self.mem_map["serwb"], serwb_core.etherbone.wishbone.bus, 8192)
 
         # leds
