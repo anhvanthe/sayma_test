@@ -69,36 +69,42 @@ if len(sys.argv) < 2:
     exit()
 
 if sys.argv[1] == "init":
-    wb_amc.regs.serwb_control_reset.write(1)
+    wb_amc.regs.serwb_phy_control_reset.write(1)
     timeout = 20
-    while not (wb_amc.regs.serwb_control_ready.read() & 0x1 |
-               wb_amc.regs.serwb_control_error.read() & 0x1 |
+    while not (wb_amc.regs.serwb_phy_control_ready.read() & 0x1 |
+               wb_amc.regs.serwb_phy_control_error.read() & 0x1 |
                timeout > 0):
         time.sleep(0.1)
         timeout -= 1
     time.sleep(2)
     print("AMC configuration")
     print("-----------------")
-    print("delay_found: {:d}".format(wb_amc.regs.serwb_control_delay_found.read()))
-    print("delay: {:d}".format(wb_amc.regs.serwb_control_delay.read()))
-    print("bitslip_found: {:d}".format(wb_amc.regs.serwb_control_bitslip_found.read()))
-    print("bitslip: {:d}".format(wb_amc.regs.serwb_control_bitslip.read()))
-    print("ready: {:d}".format(wb_amc.regs.serwb_control_ready.read()))
-    print("error: {:d}".format(wb_amc.regs.serwb_control_error.read()))
+    print("delay_min_found: {:d}".format(wb_amc.regs.serwb_phy_control_delay_min_found.read()))
+    print("delay_min: {:d}".format(wb_amc.regs.serwb_phy_control_delay_min.read()))
+    print("delay_max_found: {:d}".format(wb_amc.regs.serwb_phy_control_delay_max_found.read()))
+    print("delay_max: {:d}".format(wb_amc.regs.serwb_phy_control_delay_max.read()))    
+    print("delay: {:d}".format(wb_amc.regs.serwb_phy_control_delay.read()))
+    print("bitslip: {:d}".format(wb_amc.regs.serwb_phy_control_bitslip.read()))
+    print("ready: {:d}".format(wb_amc.regs.serwb_phy_control_ready.read()))
+    print("error: {:d}".format(wb_amc.regs.serwb_phy_control_error.read()))
     print("")
     print("RTM configuration")
     print("-----------------")
-    print("delay_found: {:d}".format(wb_rtm.regs.serwb_control_delay_found.read()))
-    print("delay: {:d}".format(wb_rtm.regs.serwb_control_delay.read()))
-    print("bitslip_found: {:d}".format(wb_rtm.regs.serwb_control_bitslip_found.read()))
-    print("bitslip: {:d}".format(wb_rtm.regs.serwb_control_bitslip.read()))
-    print("ready: {:d}".format(wb_rtm.regs.serwb_control_ready.read()))
-    print("error: {:d}".format(wb_rtm.regs.serwb_control_error.read()))
+    print("delay_min_found: {:d}".format(wb_rtm.regs.serwb_phy_control_delay_min_found.read()))
+    print("delay_min: {:d}".format(wb_rtm.regs.serwb_phy_control_delay_min.read()))
+    print("delay_max_found: {:d}".format(wb_rtm.regs.serwb_phy_control_delay_max_found.read()))
+    print("delay_max: {:d}".format(wb_rtm.regs.serwb_phy_control_delay_max.read()))    
+    print("delay: {:d}".format(wb_rtm.regs.serwb_phy_control_delay.read()))
+    print("bitslip: {:d}".format(wb_rtm.regs.serwb_phy_control_bitslip.read()))
+    print("ready: {:d}".format(wb_rtm.regs.serwb_phy_control_ready.read()))
+    print("error: {:d}".format(wb_rtm.regs.serwb_phy_control_error.read()))
 elif sys.argv[1] == "wishbone":
     write_pattern(1024)
     errors = check_pattern(1024, debug=True)
     print("errors: {:d}".format(errors))
-
+elif sys.argv[1] == "dump":
+    for i in range(256):
+        print("{:08x}".format(wb_amc.read(0x20000000 + 4*i)))
 elif sys.argv[1] == "analyzer":
     analyzer()
 else:
