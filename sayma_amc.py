@@ -686,7 +686,8 @@ class SERWBTestSoC(SoCCore):
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
             serwb_phy.serdes.cd_serwb_serdes.clk,
-            serwb_phy.serdes.cd_serwb_serdes_5x.clk)
+            serwb_phy.serdes.cd_serwb_serdes_5x.clk,
+            serwb_phy.serdes.cd_serwb_serdes_20x.clk)
 
 
         # wishbone slave
