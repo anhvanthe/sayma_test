@@ -22,13 +22,13 @@ def seed_to_data(seed, random=True):
 
 def write_pattern(length):
     for i in range(length):
-        wb_amc.write(0x20000000 + 4*i, seed_to_data(i))
+        wb_amc.write(wb_amc.mems.serwb.base + 4*i, seed_to_data(i))
 
 def check_pattern(length, debug=False):
     errors = 0
     for i in range(length):
         error = 0
-        read_data = wb_amc.read(0x20000000 + 4*i)
+        read_data = wb_amc.read(wb_amc.mems.serwb.base + 4*i)
         if read_data != seed_to_data(i):
             error = 1
             if debug:
@@ -103,8 +103,8 @@ elif sys.argv[1] == "wishbone":
     errors = check_pattern(1024, debug=True)
     print("errors: {:d}".format(errors))
 elif sys.argv[1] == "dump":
-    for i in range(256):
-        print("{:08x}".format(wb_amc.read(0x20000000 + 4*i)))
+    for i in range(32):
+        print("{:08x}".format(wb_amc.read(wb_amc.mems.serwb.base + 4*i)))
 elif sys.argv[1] == "analyzer":
     analyzer()
 else:
