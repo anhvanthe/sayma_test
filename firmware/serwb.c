@@ -39,9 +39,11 @@ void serwb_init(void)
 	printf("delay_min: %d\n", serwb_phy_control_delay_min_read());
 	printf("delay_max_found: %d\n", serwb_phy_control_delay_max_found_read());
 	printf("delay_max: %d\n", serwb_phy_control_delay_max_read());
+	printf("delay: %d\n", serwb_phy_control_delay_read());
 	printf("bitslip: %d\n", serwb_phy_control_bitslip_read());
 	printf("ready: %d\n", serwb_phy_control_ready_read());
 	printf("error: %d\n", serwb_phy_control_error_read());
+
 }
 
 

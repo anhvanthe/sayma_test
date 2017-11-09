@@ -15,6 +15,7 @@ from litex.soc.integration.builder import *
 from litex.soc.cores.uart import UARTWishboneBridge
 from litex.soc.interconnect import stream
 from litex.soc.cores.cordic import Cordic
+from litex.soc.interconnect import wishbone
 
 from litedram.modules import MT41J256M16
 from litedram.phy import kusddrphy
@@ -32,8 +33,6 @@ from drtio.gth_ultrascale import GTHChannelPLL, GTHQuadPLL, GTH
 
 from liteiclink.serwb.phy import SERWBPLL, SERWBPHY
 from liteiclink.serwb.core import SERWBCore
-
-from gateware import firmware
 
 from litescope import LiteScopeAnalyzer
 
@@ -347,10 +346,8 @@ class SDRAMTestSoC(SoCSDRAM):
 
         # firmware
         firmware_ram_size = 0x10000
-        firmware_filename = "firmware/firmware.bin"
-        self.submodules.firmware_ram = firmware.FirmwareROM(firmware_ram_size, firmware_filename)
+        self.submodules.firmware_ram = wishbone.SRAM(firmware_ram_size)
         self.register_mem("firmware_ram", self.mem_map["firmware_ram"], self.firmware_ram.bus, firmware_ram_size)
-        self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["firmware_ram"])
 
         # sdram
         self.submodules.ddrphy = kusddrphy.KUSDDRPHY(platform.request(ddram))
@@ -680,15 +677,9 @@ class SERWBTestSoC(SoCCore):
         serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 1e9/31.25e6),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1e9/625e6),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 1e9/156.25e6)
-        self.platform.add_false_path_constraints(
-            self.crg.cd_sys.clk,
-            serwb_phy.serdes.cd_serwb_serdes.clk,
-            serwb_phy.serdes.cd_serwb_serdes_5x.clk,
-            serwb_phy.serdes.cd_serwb_serdes_20x.clk)
-
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk,  40*1e9/serwb_pll.linerate)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 2*1e9/serwb_pll.linerate)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 8*1e9/serwb_pll.linerate)
 
         # wishbone slave
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
@@ -795,10 +786,8 @@ class FullTestSoC(SoCSDRAM):
 
         # firmware
         firmware_ram_size = 0x10000
-        firmware_filename = "firmware/firmware.bin"
-        self.submodules.firmware_ram = firmware.FirmwareROM(firmware_ram_size, firmware_filename)
+        self.submodules.firmware_ram = wishbone.SRAM(firmware_ram_size)
         self.register_mem("firmware_ram", self.mem_map["firmware_ram"], self.firmware_ram.bus, firmware_ram_size)
-        self.add_constant("ROM_BOOT_ADDRESS", self.mem_map["firmware_ram"])
 
         # sdram
         self.submodules.ddrphy = kusddrphy.KUSDDRPHY(platform.request("ddram_64"))
@@ -819,13 +808,9 @@ class FullTestSoC(SoCSDRAM):
         serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 1e9/31.25e6),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 1e9/625e6),
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 1e9/156.25e6)
-        self.platform.add_false_path_constraints(
-            self.crg.cd_sys.clk,
-            serwb_phy.serdes.cd_serwb_serdes.clk,
-            serwb_phy.serdes.cd_serwb_serdes_5x.clk)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk, 40*1e9/serwb_pll.linerate)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 2*1e9/serwb_pll.linerate)
+        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 8*1e9/serwb_pll.linerate)
 
         # wishbone slave
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
