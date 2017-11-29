@@ -7,8 +7,8 @@ from litex.soc.tools.remote import RemoteClient
 
 from libbase.hmc import *
 
-# hmc830 config, 100MHz input, 1GHz outpsut
-# fvco = (refclk / r_divider) * n_dividser
+# hmc830 config, 100MHz input, 1.2GHz output
+# fvco = (refclk / r_divider) * n_divider
 # fout = fvco/2 
 hmc830_config = [
     (0x0, 0x20),
