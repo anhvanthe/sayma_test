@@ -1,3 +1,1 @@
-- test spi jesd configuration with amc through amc rtm link
-- test jesd with amc/rtm/wishbone bridge.
 - add scrambling to serwb (recycle code from drtio)
