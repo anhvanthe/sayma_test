@@ -120,6 +120,11 @@ _io = [
         Misc("SLEW=FAST"),
     ),
 
+    # dac
+    ("dac_refclk", 0,
+        Subsignal("p", Pins("V6")),
+        Subsignal("n", Pins("V5")),
+    ),
     # drtio
     ("drtio_tx", 0,
         Subsignal("p", Pins("AN4")),
@@ -269,7 +274,7 @@ class DRTIOTestSoC(SoCCore):
         platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
         refclk = Signal()
-        refclk_pads = platform.request("rtm_refclk125")
+        refclk_pads = platform.request("dac_refclk", 0) # FIXME?
         self.specials += [
             Instance("IBUFDS_GTE3",
                 i_CEB=0,
@@ -279,11 +284,11 @@ class DRTIOTestSoC(SoCCore):
         ]
 
         if pll == "cpll":
-            plls = [GTHChannelPLL(refclk, 125e6, 1.25e9) for i in range(2)]
+            plls = [GTHChannelPLL(refclk, 150e6, 3e9) for i in range(2)]
             self.submodules += iter(plls)
             print(plls)
         elif pll == "qpll":
-            qpll = GTHQuadPLL(refclk, 125e6, 1.25e9)
+            qpll = GTHQuadPLL(refclk, 150e6, 3e9)
             plls = [qpll for i in range(2)]
             self.submodules += qpll
             print(qpll)
