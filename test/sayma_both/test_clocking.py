@@ -38,9 +38,7 @@ class HMC7043DUT:
 
 runpy.run_path("libbase/hmc7043_config_6gbps.py", {"dut": HMC7043DUT})
 
-wb_amc = RemoteClient(port=1234, csr_csv="../sayma_amc/csr.csv", debug=False)
 wb_rtm = RemoteClient(port=1235, csr_csv="../sayma_rtm/csr.csv", debug=False)
-wb_amc.open()
 wb_rtm.open()
 
 # # #
@@ -65,5 +63,4 @@ for addr, data in hmc7043_config:
 
 # # #
 
-wb_amc.close()
 wb_rtm.close()
