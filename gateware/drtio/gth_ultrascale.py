@@ -375,7 +375,7 @@ class GTHSingle(Module):
         tx_reset_deglitched.attr.add("no_retiming")
         self.sync += tx_reset_deglitched.eq(~tx_init.done)
         self.clock_domains.cd_rtio_tx = ClockDomain()
-        if mode is "master":
+        if mode == "master":
             tx_bufg_div = pll.config["clkin"]/self.rtio_clk_freq
             assert tx_bufg_div == int(tx_bufg_div)
             self.specials += \
@@ -395,7 +395,7 @@ class GTHSingle(Module):
 
         # tx data
         self.comb += txdata.eq(Cat(*[encoder.output[i] for i in range(nwords)]))
-        
+
         # rx data
         for i in range(nwords):
             self.comb += decoders[i].input.eq(rxdata[10*i:10*(i+1)])
