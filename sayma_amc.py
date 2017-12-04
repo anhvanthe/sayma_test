@@ -152,6 +152,7 @@ _io = [
         Subsignal("p", Pins("V6")),
         Subsignal("n", Pins("V5")),
     ),
+ 
     ("dac_sysref", 0,
         Subsignal("p", Pins("B10")),
         Subsignal("n", Pins("A10")),
@@ -167,10 +168,6 @@ _io = [
         Subsignal("txn", Pins("R3 U3 W3 AA3 AC3 AE3 AG3 AH5"))
     ),
 
-    ("dac_refclk", 1,
-        Subsignal("p", Pins("P6")),
-        Subsignal("n", Pins("P5")),
-    ),
     ("dac_sysref", 1,
         Subsignal("p", Pins("B10")),
         Subsignal("n", Pins("A10")),
@@ -188,6 +185,11 @@ _io = [
 
 
     # drtio
+    ("drtio_refclk", 0,
+        Subsignal("p", Pins("P6")),
+        Subsignal("n", Pins("P5")),
+    ),
+
     ("drtio_tx", 0,
         Subsignal("p", Pins("AN4")),
         Subsignal("n", Pins("AN3"))
@@ -483,7 +485,7 @@ class JESDTestSoC(SoCCore):
         refclk_freq = 150e6
 
         self.clock_domains.cd_jesd = ClockDomain()
-        refclk_pads = platform.request("dac_refclk", 0)
+        refclk_pads = platform.request("dac_refclk")
 
         self.refclk = Signal()
         refclk_to_bufg_gt = Signal()
@@ -573,7 +575,7 @@ class DRTIOTestSoC(SoCCore):
         ]
 
         refclk = Signal()
-        refclk_pads = platform.request("dac_refclk", 0) # FIXME?
+        refclk_pads = platform.request("drtio_refclk")
         self.specials += [
             Instance("IBUFDS_GTE3",
                 i_CEB=0,
