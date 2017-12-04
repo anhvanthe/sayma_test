@@ -126,6 +126,11 @@ _io = [
         Subsignal("n", Pins("V5")),
     ),
     # drtio
+    ("drtio_refclk", 0,
+        Subsignal("p", Pins("P6")),
+        Subsignal("n", Pins("P5")),
+    ),
+
     ("drtio_tx", 0,
         Subsignal("p", Pins("AN4")),
         Subsignal("n", Pins("AN3"))
@@ -274,7 +279,7 @@ class DRTIOTestSoC(SoCCore):
         platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
         refclk = Signal()
-        refclk_pads = platform.request("dac_refclk", 0) # FIXME?
+        refclk_pads = platform.request("drtio_refclk")
         self.specials += [
             Instance("IBUFDS_GTE3",
                 i_CEB=0,
