@@ -320,7 +320,7 @@ class SERWBTestSoC(SoCCore):
             serwb_phy.serdes.cd_serwb_serdes_5x.clk)
 
         # wishbone master
-        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master")
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master", with_scrambling=False)
         self.submodules += serwb_core
         self.add_wb_master(serwb_core.etherbone.wishbone.bus)
 
