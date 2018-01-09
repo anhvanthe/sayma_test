@@ -820,7 +820,7 @@ class FullTestSoC(SoCSDRAM):
             serwb_phy.serdes.cd_serwb_serdes_5x.clk)
 
         # wishbone slave
-        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=True)
         self.submodules += serwb_core
         self.register_mem("serwb", self.mem_map["serwb"], serwb_core.etherbone.wishbone.bus, 8192)
 
