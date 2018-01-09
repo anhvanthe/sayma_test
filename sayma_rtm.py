@@ -301,7 +301,7 @@ class SERWBTestSoC(SoCCore):
         platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
         # amc rtm link
-        serwb_pll = SERWBPLL(125e6, 1.25e9, vco_div=1)
+        serwb_pll = SERWBPLL(125e6/2, 1.25e9/2, vco_div=1)
         self.submodules += serwb_pll
 
         serwb_phy = SERWBPHY(platform.device, serwb_pll, platform.request("serwb"), mode="slave")

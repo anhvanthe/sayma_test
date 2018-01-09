@@ -666,7 +666,7 @@ class SERWBTestSoC(SoCCore):
         ]
 
         # amc rtm link
-        serwb_pll = SERWBPLL(125e6, 1.25e9, vco_div=2)
+        serwb_pll = SERWBPLL(125e6, 1.25e9/2, vco_div=2)
         self.comb += serwb_pll.refclk.eq(ClockSignal())
         self.submodules += serwb_pll
 
@@ -801,7 +801,7 @@ class FullTestSoC(SoCSDRAM):
         self.add_constant("KUSDDRPHY", None)
        
         # amc rtm link
-        serwb_pll = SERWBPLL(125e6, 1.25e9, vco_div=2)
+        serwb_pll = SERWBPLL(125e6, 1.25e9/2, vco_div=2)
         self.comb += serwb_pll.refclk.eq(ClockSignal())
         self.submodules += serwb_pll
 
