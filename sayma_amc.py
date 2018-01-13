@@ -520,6 +520,7 @@ class JESDTestSoC(SoCCore):
             setattr(self.submodules, "dac"+str(dac)+"_core", core)
             setattr(self.submodules, "dac"+str(dac)+"_control", control)
             core.register_jsync(platform.request("dac_sync", dac))
+            core.register_jref(platform.request("dac_sysref", dac) if dac == 0 else self.dac0_core.jref)
             self.comb += [
                 core.sink.converter0.eq(Cat(cosine.o, cosine.o, cosine.o, cosine.o)),
                 core.sink.converter1.eq(Cat(cosine.o, cosine.o, cosine.o, cosine.o)),
