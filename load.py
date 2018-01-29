@@ -10,6 +10,10 @@ def load_clkgen():
     prog.load_bitstream(
         bitstream_file="build_clkgen/gateware/top.bit")
 
+def load_kcu105():
+    prog = VivadoProgrammer()
+    prog.load_bitstream(
+        bitstream_file="build_kcu105/gateware/top.bit")
 
 def load_sayma_amc():
     prog = VivadoProgrammer()
@@ -30,6 +34,8 @@ def main():
     if len(sys.argv) < 2:
         print("missing sayma board (clkgen, sayma_amc, sayma_rtm or sayma)")
         exit()
+    if sys.argv[1] == "kcu105":
+        load_kcu105()    
     if sys.argv[1] == "clkgen":
         load_clkgen()
     elif sys.argv[1] == "sayma_amc":
