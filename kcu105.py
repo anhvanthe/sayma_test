@@ -40,11 +40,11 @@ class BaseSoC(SoCCore):
 
 class DRTIOTestSoC(SoCCore):
     csr_map = {
-        "drtio_phy": 20
+        "analyzer" : 20 
     }
     csr_map.update(SoCCore.csr_map)
 
-    def __init__(self, platform, pll="cpll", dw=20):
+    def __init__(self, platform, pll="cpll", nlanes=2, dw=20):
         clk_freq = int(1e9/platform.default_clk_period)
         SoCCore.__init__(self, platform, clk_freq,
             cpu_type=None,
@@ -54,7 +54,8 @@ class DRTIOTestSoC(SoCCore):
             ident_version=True,
             with_timer=False
         )
-        self.submodules.crg = CRG(platform.request(platform.default_clk_name))
+        self.submodules.crg = CRG(platform.request(platform.default_clk_name),
+        	                      platform.request("cpu_reset"))
         self.add_cpu_or_bridge(UARTWishboneBridge(platform.request("serial"),
                                                   clk_freq, baudrate=115200))
         self.add_wb_master(self.cpu_or_bridge.wishbone)
@@ -101,8 +102,8 @@ class DRTIOTestSoC(SoCCore):
 
         self.submodules.drtio_phy = drtio_phy = GTH(
             plls,
-            [platform.request("sfp_tx", i) for i in range(2)],
-            [platform.request("sfp_rx", i) for i in range(2)],
+            [platform.request("sfp_tx", i) for i in range(nlanes)],
+            [platform.request("sfp_rx", i) for i in range(nlanes)],
             clk_freq,
             20)
         self.comb += platform.request("sfp_tx_disable_n", 0).eq(0b1)
@@ -131,9 +132,17 @@ class DRTIOTestSoC(SoCCore):
                 gth.cd_rtio_tx.clk,
                 gth.cd_rtio_rx.clk)
 
-    def do_exit(self, vns):
-        pass
+        analyzer_signals = [
+            drtio_phy.gths[0].tx_init.debug,
+            drtio_phy.gths[0].rx_init.debug,
+            drtio_phy.gths[1].tx_init.debug,
+            drtio_phy.gths[1].rx_init.debug
+        ]
+        self.submodules.analyzer = LiteScopeAnalyzer(analyzer_signals, 64)
 
+    def do_exit(self, vns):
+        if hasattr(self, "analyzer"):
+            self.analyzer.export_csv(vns, "test/kcu105/analyzer.csv")
 
 def main():
     platform = kcu105.Platform()
@@ -144,8 +153,9 @@ def main():
         soc = BaseSoC(platform)
     elif sys.argv[1] == "drtio":
         soc = DRTIOTestSoC(platform)
-    builder = Builder(soc, output_dir="build_kcu105")
-    builder.build()
+    builder = Builder(soc, output_dir="build_kcu105", csr_csv="test/kcu105/csr.csv")
+    vns = builder.build()
+    soc.do_exit(vns)
 
 
 if __name__ == "__main__":

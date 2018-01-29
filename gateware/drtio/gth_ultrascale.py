@@ -1,3 +1,6 @@
+from functools import reduce
+from operator import and_
+
 from litex.gen import *
 from litex.gen.genlib.resetsync import AsyncResetSynchronizer
 from litex.gen.genlib.cdc import MultiReg
@@ -201,7 +204,16 @@ CLKIN +----> /M  +-->       Charge Pump         | +------------+->/2+--> CLKOUT
 class GTHSingle(Module):
     def __init__(self, pll, tx_pads, rx_pads, sys_clk_freq, dw=20, mode="master"):
         assert (dw == 20) or (dw == 40)
-        assert mode in ["master", "slave"]
+        assert mode in ["single", "master", "slave"]
+
+        # multi-lane phase alignment
+        self.txsyncallin = Signal()
+        self.txphaligndone = Signal()
+        self.txsyncallin = Signal()
+        self.txsyncin = Signal()
+        self.txsyncout = Signal()
+
+        self.tx_init_txdlysreset = Signal()
 
         # # #
 
@@ -227,11 +239,10 @@ class GTHSingle(Module):
         # # #
 
         # TX generates RTIO clock, init must be in system domain
-        tx_init = GTHInit(sys_clk_freq, False)
+        self.submodules.tx_init = tx_init = GTHInit(sys_clk_freq, False, mode)
         # RX receives restart commands from RTIO domain
-        rx_init = ClockDomainsRenamer("rtio_tx")(
+        self.submodules.rx_init = rx_init = ClockDomainsRenamer("rtio_tx")(
             GTHInit(self.rtio_clk_freq, True))
-        self.submodules += tx_init, rx_init
         self.comb += [
             tx_init.plllock.eq(pll.lock),
             rx_init.plllock.eq(pll.lock)
@@ -293,11 +304,17 @@ class GTHSingle(Module):
                 # TX Startup/Reset
                 i_GTTXRESET=tx_init.gtXxreset,
                 o_TXRESETDONE=tx_init.Xxresetdone,
-                i_TXDLYSRESET=tx_init.Xxdlysreset,
+                i_TXDLYSRESET=tx_init.Xxdlysreset if mode != "slave" else self.tx_init_txdlysreset,
                 o_TXDLYSRESETDONE=tx_init.Xxdlysresetdone,
                 o_TXPHALIGNDONE=tx_init.Xxphaligndone,
                 i_TXUSERRDY=tx_init.Xxuserrdy,
-                i_TXSYNCMODE=1,
+                i_TXSYNCMODE=mode != "slave",
+                p_TXSYNC_MULTILANE=0 if mode == "single" else 1,
+                p_TXSYNC_OVRD=0,
+                i_TXSYNCALLIN=self.txsyncallin,
+                i_TXSYNCIN=self.txsyncin,
+                o_TXSYNCOUT=self.txsyncout,
+
 
                 # TX data
                 p_TX_DATA_WIDTH=dw,
@@ -369,6 +386,7 @@ class GTHSingle(Module):
                 o_GTHTXP=tx_pads.p,
                 o_GTHTXN=tx_pads.n
             )
+        self.comb += self.txphaligndone.eq(tx_init.Xxphaligndone)
 
         # tx clocking
         tx_reset_deglitched = Signal()
@@ -419,20 +437,50 @@ class GTH(Module, TransceiverInterface):
 
         nwords = dw//10
 
+        txsyncallin = Signal()
+        txsync = Signal()
+        txphaligndone = Signal(nchannels)
+        txdlysreset = Signal()
+
+        ready_for_align = Signal(nchannels)
+        all_ready_for_align = Signal()
+
         rtio_tx_clk = Signal()
         channel_interfaces = []
         for i in range(nchannels):
-            mode = "master" if i == master else "slave"
-            gth = GTHSingle(plls[i], tx_pads[i], rx_pads[i], sys_clk_freq, dw, mode)
-            if mode == "master":
-                self.comb += rtio_tx_clk.eq(gth.cd_rtio_tx.clk)
+            if nchannels == 1:
+                mode = "single"
             else:
-                self.comb += gth.cd_rtio_tx.clk.eq(rtio_tx_clk)
+                mode = "master" if i == master else "slave"
+            gth = GTHSingle(plls[i], tx_pads[i], rx_pads[i], sys_clk_freq, dw, mode)
+            self.comb += [
+                ready_for_align[i].eq(1),
+                gth.txsyncin.eq(txsync),
+                gth.txsyncallin.eq(txsyncallin),
+                txphaligndone[i].eq(gth.txphaligndone)
+            ]
+            if mode == "master" or mode == "single":
+                self.comb += [
+                    gth.tx_init.all_ready_for_align.eq(all_ready_for_align),
+                    txsync.eq(gth.txsyncout),
+                    txdlysreset.eq(gth.tx_init.Xxdlysreset),
+                    rtio_tx_clk.eq(gth.cd_rtio_tx.clk)
+                ]
+            else:
+                self.comb += [
+                    ready_for_align[i].eq(gth.tx_init.ready_for_align),
+                    gth.tx_init_txdlysreset.eq(txdlysreset),
+                    gth.cd_rtio_tx.clk.eq(rtio_tx_clk)
+                ]
             self.gths.append(gth)
             setattr(self.submodules, "gth"+str(i), gth)
             channel_interface = ChannelInterface(gth.encoder, gth.decoders)
             self.comb += channel_interface.rx_ready.eq(gth.rx_ready)
             channel_interfaces.append(channel_interface)
+        self.comb += [
+            txsyncallin.eq(reduce(and_, [txphaligndone[i] for i in range(nchannels)])),
+            all_ready_for_align.eq(reduce(and_, [ready_for_align[i] for i in range(nchannels)]))
+        ]
 
         TransceiverInterface.__init__(self, channel_interfaces)
 
