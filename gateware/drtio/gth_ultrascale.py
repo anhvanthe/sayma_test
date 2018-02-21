@@ -205,15 +205,15 @@ class GTHSingle(Module):
     def __init__(self, pll, tx_pads, rx_pads, sys_clk_freq, dw=20, mode="master"):
         assert (dw == 20) or (dw == 40)
         assert mode in ["single", "master", "slave"]
+        self.mode = mode
 
-        # multi-lane phase alignment
+        # phase alignment
         self.txsyncallin = Signal()
         self.txphaligndone = Signal()
         self.txsyncallin = Signal()
         self.txsyncin = Signal()
         self.txsyncout = Signal()
-
-        self.tx_init_txdlysreset = Signal()
+        self.txdlysreset = Signal()
 
         # # #
 
@@ -304,7 +304,7 @@ class GTHSingle(Module):
                 # TX Startup/Reset
                 i_GTTXRESET=tx_init.gtXxreset,
                 o_TXRESETDONE=tx_init.Xxresetdone,
-                i_TXDLYSRESET=tx_init.Xxdlysreset if mode != "slave" else self.tx_init_txdlysreset,
+                i_TXDLYSRESET=tx_init.Xxdlysreset if mode != "slave" else self.txdlysreset,
                 o_TXDLYSRESETDONE=tx_init.Xxdlysresetdone,
                 o_TXPHALIGNDONE=tx_init.Xxphaligndone,
                 i_TXUSERRDY=tx_init.Xxuserrdy,
@@ -428,6 +428,44 @@ class GTHSingle(Module):
         ]
 
 
+class GTHPhaseAlignement(Module):
+    # TX Buffer Bypass in  Single-Lane/Multi-Lane Auto Mode (ug576)
+    def __init__(self, gths):
+        txsyncallin = Signal()
+        txsync = Signal()
+        txphaligndone = Signal(len(gths))
+        txdlysreset = Signal()
+        ready_for_align = Signal(len(gths))
+        all_ready_for_align = Signal()
+
+        for i, gth in enumerate(gths):
+            # Common to all transceivers
+            self.comb += [
+                ready_for_align[i].eq(1),
+                gth.txsyncin.eq(txsync),
+                gth.txsyncallin.eq(txsyncallin),
+                txphaligndone[i].eq(gth.txphaligndone)
+            ]
+            # Specific to Master or Single transceivers
+            if gth.mode == "master" or gth.mode == "single":
+                self.comb += [
+                    gth.tx_init.all_ready_for_align.eq(all_ready_for_align),
+                    txsync.eq(gth.txsyncout),
+                    txdlysreset.eq(gth.tx_init.Xxdlysreset)
+                ]
+            # Specific to Slave transceivers
+            else:
+                self.comb += [
+                    ready_for_align[i].eq(gth.tx_init.ready_for_align),
+                    gth.txdlysreset.eq(txdlysreset),
+                ]
+
+        self.comb += [
+            txsyncallin.eq(reduce(and_, [txphaligndone[i] for i in range(len(gths))])),
+            all_ready_for_align.eq(reduce(and_, [ready_for_align[i] for i in range(len(gths))]))
+        ]
+
+
 class GTH(Module, TransceiverInterface):
     def __init__(self, plls, tx_pads, rx_pads, sys_clk_freq, dw, master=0):
         self.nchannels = nchannels = len(tx_pads)
@@ -437,14 +475,6 @@ class GTH(Module, TransceiverInterface):
 
         nwords = dw//10
 
-        txsyncallin = Signal()
-        txsync = Signal()
-        txphaligndone = Signal(nchannels)
-        txdlysreset = Signal()
-
-        ready_for_align = Signal(nchannels)
-        all_ready_for_align = Signal()
-
         rtio_tx_clk = Signal()
         channel_interfaces = []
         for i in range(nchannels):
@@ -453,34 +483,17 @@ class GTH(Module, TransceiverInterface):
             else:
                 mode = "master" if i == master else "slave"
             gth = GTHSingle(plls[i], tx_pads[i], rx_pads[i], sys_clk_freq, dw, mode)
-            self.comb += [
-                ready_for_align[i].eq(1),
-                gth.txsyncin.eq(txsync),
-                gth.txsyncallin.eq(txsyncallin),
-                txphaligndone[i].eq(gth.txphaligndone)
-            ]
-            if mode == "master" or mode == "single":
-                self.comb += [
-                    gth.tx_init.all_ready_for_align.eq(all_ready_for_align),
-                    txsync.eq(gth.txsyncout),
-                    txdlysreset.eq(gth.tx_init.Xxdlysreset),
-                    rtio_tx_clk.eq(gth.cd_rtio_tx.clk)
-                ]
+            if mode == "slave":
+                self.comb += gth.cd_rtio_tx.clk.eq(rtio_tx_clk)
             else:
-                self.comb += [
-                    ready_for_align[i].eq(gth.tx_init.ready_for_align),
-                    gth.tx_init_txdlysreset.eq(txdlysreset),
-                    gth.cd_rtio_tx.clk.eq(rtio_tx_clk)
-                ]
+                self.comb += rtio_tx_clk.eq(gth.cd_rtio_tx.clk)
             self.gths.append(gth)
             setattr(self.submodules, "gth"+str(i), gth)
             channel_interface = ChannelInterface(gth.encoder, gth.decoders)
             self.comb += channel_interface.rx_ready.eq(gth.rx_ready)
             channel_interfaces.append(channel_interface)
-        self.comb += [
-            txsyncallin.eq(reduce(and_, [txphaligndone[i] for i in range(nchannels)])),
-            all_ready_for_align.eq(reduce(and_, [ready_for_align[i] for i in range(nchannels)]))
-        ]
+
+        self.submodules.phase_alignment = GTHPhaseAlignement(self.gths)
 
         TransceiverInterface.__init__(self, channel_interfaces)
 
