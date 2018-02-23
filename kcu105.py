@@ -3,13 +3,13 @@ import sys
 import sys
 sys.path.append("gateware") # FIXME
 
-from litex.gen import *
-from litex.soc.interconnect.csr import *
+from migen import *
+from migen.genlib.io import CRG
+
 from litex.build.generic_platform import *
 from litex.boards.platforms import kcu105
 
-from litex.gen.genlib.io import CRG
-
+from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 from litex.soc.cores.uart import UARTWishboneBridge
@@ -40,7 +40,7 @@ class BaseSoC(SoCCore):
 
 class DRTIOTestSoC(SoCCore):
     csr_map = {
-        "analyzer" : 20 
+        "analyzer" : 20
     }
     csr_map.update(SoCCore.csr_map)
 

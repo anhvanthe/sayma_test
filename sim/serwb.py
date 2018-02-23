@@ -4,11 +4,11 @@ import os
 import sys
 sys.path.append("../")
 
-from litex.gen import *
+from migen import *
+from migen.genlib.io import CRG
+
 from litex.build.generic_platform import *
 from litex.build.xilinx import XilinxPlatform
-
-from litex.gen.genlib.io import CRG
 
 from gateware.transceiver.serwb import *
 
@@ -57,7 +57,7 @@ class AMCRTMLinkSim(Module):
         self.submodules += rtm_pll
         self.submodules.rtm_serdes = RTMSlaveSerdes(rtm_pll, platform.request("rtm_serdes"))
         self.comb += self.rtm_serdes.tx_data.eq(0x5a)
-        self.submodules.rtm_serdes_init = RTMSlaveSerdesInit(self.rtm_serdes)        
+        self.submodules.rtm_serdes_init = RTMSlaveSerdesInit(self.rtm_serdes)
 
 
 def generate_top():

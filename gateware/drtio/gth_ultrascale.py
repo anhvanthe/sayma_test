@@ -1,9 +1,9 @@
 from functools import reduce
 from operator import and_
 
-from litex.gen import *
-from litex.gen.genlib.resetsync import AsyncResetSynchronizer
-from litex.gen.genlib.cdc import MultiReg
+from migen import *
+from migen.genlib.resetsync import AsyncResetSynchronizer
+from migen.genlib.cdc import MultiReg
 
 from litex.soc.interconnect.csr import *
 from litex.soc.cores.code_8b10b import Encoder, Decoder

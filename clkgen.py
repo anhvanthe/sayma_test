@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import sys
 
-from litex.gen import *
-from litex.boards.platforms import kcu105
+from migen import *
+from migen.genlib.io import CRG
 
-from litex.gen.genlib.io import CRG
+from litex.boards.platforms import kcu105
 
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *

@@ -1,4 +1,4 @@
-from litex.gen import *
+from migen import *
 
 class ChannelInterface:
     def __init__(self, encoder, decoders):

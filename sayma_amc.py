@@ -2,9 +2,10 @@
 import sys
 sys.path.append("gateware") # FIXME
 
-from litex.gen import *
+from migen import *
+from migen.genlib.resetsync import AsyncResetSynchronizer
+
 from litex.soc.interconnect.csr import *
-from litex.gen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.build.generic_platform import *
 from litex.build.xilinx import XilinxPlatform
@@ -152,7 +153,7 @@ _io = [
         Subsignal("p", Pins("V6")),
         Subsignal("n", Pins("V5")),
     ),
- 
+
     ("dac_sysref", 0,
         Subsignal("p", Pins("B10")),
         Subsignal("n", Pins("A10")),
@@ -439,7 +440,7 @@ class Cosine(Module, AutoCSR):
 
 class JESDTestSoC(SoCCore):
     csr_map = {
-        "cosine":       20, 
+        "cosine":       20,
         "dac0_control": 21,
         "dac0_core":    22,
         "dac1_control": 23,
@@ -800,7 +801,7 @@ class FullTestSoC(SoCSDRAM):
                             sdram_module.geom_settings,
                             sdram_module.timing_settings)
         self.add_constant("KUSDDRPHY", None)
-       
+
         # amc rtm link
         serwb_pll = SERWBPLL(125e6, 1.25e9/2, vco_div=2)
         self.comb += serwb_pll.refclk.eq(ClockSignal())
