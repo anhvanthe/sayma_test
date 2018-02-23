@@ -393,7 +393,7 @@ class GTHSingle(Module):
         tx_reset_deglitched.attr.add("no_retiming")
         self.sync += tx_reset_deglitched.eq(~tx_init.done)
         self.clock_domains.cd_rtio_tx = ClockDomain()
-        if mode == "master":
+        if mode == "master" or mode == "single":
             tx_bufg_div = pll.config["clkin"]/self.rtio_clk_freq
             assert tx_bufg_div == int(tx_bufg_div)
             self.specials += \
@@ -483,10 +483,10 @@ class GTH(Module, TransceiverInterface):
             else:
                 mode = "master" if i == master else "slave"
             gth = GTHSingle(plls[i], tx_pads[i], rx_pads[i], sys_clk_freq, dw, mode)
-            if mode == "slave":
-                self.comb += gth.cd_rtio_tx.clk.eq(rtio_tx_clk)
-            else:
+            if mode == "master":
                 self.comb += rtio_tx_clk.eq(gth.cd_rtio_tx.clk)
+            elif mode == "slave":
+                self.comb += gth.cd_rtio_tx.clk.eq(rtio_tx_clk)
             self.gths.append(gth)
             setattr(self.submodules, "gth"+str(i), gth)
             channel_interface = ChannelInterface(gth.encoder, gth.decoders)
@@ -498,7 +498,7 @@ class GTH(Module, TransceiverInterface):
         TransceiverInterface.__init__(self, channel_interfaces)
 
         # rtio clock domain (clock from gth tx0, ored reset from all gth txs)
-        self.comb += self.cd_rtio.clk.eq(ClockSignal("gth0_rtio_tx"))
+        self.cd_rtio.clk.eq(self.gths[master].cd_rtio_tx.clk)
         rtio_rst = Signal()
         for i in range(nchannels):
             rtio_rst.eq(rtio_rst | ResetSignal("gth" + str(i) + "rtio_tx"))

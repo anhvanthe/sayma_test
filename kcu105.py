@@ -55,7 +55,7 @@ class DRTIOTestSoC(SoCCore):
             with_timer=False
         )
         self.submodules.crg = CRG(platform.request(platform.default_clk_name),
-        	                      platform.request("cpu_reset"))
+                                  platform.request("cpu_reset"))
         self.add_cpu_or_bridge(UARTWishboneBridge(platform.request("serial"),
                                                   clk_freq, baudrate=115200))
         self.add_wb_master(self.cpu_or_bridge.wishbone)
@@ -63,7 +63,7 @@ class DRTIOTestSoC(SoCCore):
         self.crg.cd_sys.clk.attr.add("keep")
         platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
-		# 300Mhz clock -> user_sma --> user_sma_mgt_refclk
+        # 300Mhz clock -> user_sma --> user_sma_mgt_refclk
         clk300 = platform.request("clk300")
         clk300_se = Signal()
         self.specials += Instance("IBUFDS", i_I=clk300.p, i_IB=clk300.n, o_O=clk300_se)
@@ -91,12 +91,11 @@ class DRTIOTestSoC(SoCCore):
         ]
 
         if pll == "cpll":
-            plls = [GTHChannelPLL(refclk, 300e6, 3e9) for i in range(2)]
+            plls = [GTHChannelPLL(refclk, 300e6, 3e9) for i in range(nlanes)]
             self.submodules += iter(plls)
             print(plls)
         elif pll == "qpll":
             qpll = GTHQuadPLL(refclk, 300e6, 3e9)
-            plls = [qpll for i in range(2)]
             self.submodules += qpll
             print(qpll)
 
@@ -135,9 +134,12 @@ class DRTIOTestSoC(SoCCore):
         analyzer_signals = [
             drtio_phy.gths[0].tx_init.debug,
             drtio_phy.gths[0].rx_init.debug,
-            drtio_phy.gths[1].tx_init.debug,
-            drtio_phy.gths[1].rx_init.debug
         ]
+        if nlanes >= 2:
+            analyzer_signals += [
+                drtio_phy.gths[0].tx_init.debug,
+                drtio_phy.gths[0].rx_init.debug,
+            ]
         self.submodules.analyzer = LiteScopeAnalyzer(analyzer_signals, 64)
 
     def do_exit(self, vns):
