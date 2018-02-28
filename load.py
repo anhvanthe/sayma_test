@@ -22,7 +22,6 @@ def load_sayma_amc():
         bitstream_file="build_sayma_amc/gateware/top.bit",
         device=0)
 
-
 def load_sayma_rtm():
     prog = VivadoProgrammer()
     prog.load_bitstream(
@@ -32,7 +31,7 @@ def load_sayma_rtm():
 
 def main():
     if len(sys.argv) < 2:
-        print("missing sayma board (clkgen, sayma_amc, sayma_rtm or sayma)")
+        print("missing sayma board (clkgen, kcu105, sayma_amc, sayma_rtm or sayma)")
         exit()
     if sys.argv[1] == "kcu105":
         load_kcu105()    

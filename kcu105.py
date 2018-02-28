@@ -14,9 +14,8 @@ from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 from litex.soc.cores.uart import UARTWishboneBridge
 
-from drtio.gth_ultrascale import GTHChannelPLL, GTHQuadPLL, GTH
+from drtio.gth_ultrascale import GTH
 
-from litescope import LiteScopeAnalyzer
 
 
 class BaseSoC(SoCCore):
@@ -40,11 +39,12 @@ class BaseSoC(SoCCore):
 
 class DRTIOTestSoC(SoCCore):
     csr_map = {
-        "analyzer" : 20
+        "analyzer" : 20,
+        "drtio_phy": 21
     }
     csr_map.update(SoCCore.csr_map)
 
-    def __init__(self, platform, pll="cpll", nlanes=2, dw=20):
+    def __init__(self, platform, nlanes=2):
         clk_freq = int(1e9/platform.default_clk_period)
         SoCCore.__init__(self, platform, clk_freq,
             cpu_type=None,
@@ -63,48 +63,27 @@ class DRTIOTestSoC(SoCCore):
         self.crg.cd_sys.clk.attr.add("keep")
         platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
-        # 300Mhz clock -> user_sma --> user_sma_mgt_refclk
+        # 150Mhz clock -> user_sma --> user_sma_mgt_refclk
         clk300 = platform.request("clk300")
-        clk300_se = Signal()
-        self.specials += Instance("IBUFDS", i_I=clk300.p, i_IB=clk300.n, o_O=clk300_se)
+        self.clock_domains.cd_clk300 = ClockDomain()
+        self.specials += Instance("IBUFDS", i_I=clk300.p, i_IB=clk300.n, o_O=self.cd_clk300.clk)
         user_sma_clock_pads = platform.request("user_sma_clock")
         user_sma_clock = Signal()
+        self.sync.clk300 += user_sma_clock.eq(~user_sma_clock)
         self.specials += [
-            Instance("ODDRE1",
-                i_D1=0, i_D2=1, i_SR=0,
-                i_C=clk300_se,
-                o_Q=user_sma_clock),
             Instance("OBUFDS",
                 i_I=user_sma_clock,
                 o_O=user_sma_clock_pads.p,
                 o_OB=user_sma_clock_pads.n)
         ]
 
-        refclk = Signal()
-        refclk_pads = platform.request("user_sma_mgt_refclk")
-        self.specials += [
-            Instance("IBUFDS_GTE3",
-                i_CEB=0,
-                i_I=refclk_pads.p,
-                i_IB=refclk_pads.n,
-                o_O=refclk)
-        ]
-
-        if pll == "cpll":
-            plls = [GTHChannelPLL(refclk, 300e6, 3e9) for i in range(nlanes)]
-            self.submodules += iter(plls)
-            print(plls)
-        elif pll == "qpll":
-            qpll = GTHQuadPLL(refclk, 300e6, 3e9)
-            self.submodules += qpll
-            print(qpll)
+        rtio_clk_freq = 150e6
 
         self.submodules.drtio_phy = drtio_phy = GTH(
-            plls,
-            [platform.request("sfp_tx", i) for i in range(nlanes)],
-            [platform.request("sfp_rx", i) for i in range(nlanes)],
-            clk_freq,
-            20)
+            clock_pads=platform.request("user_sma_mgt_refclk"),
+            data_pads= [platform.request("sfp", i) for i in range(nlanes)],
+            sys_clk_freq=clk_freq,
+            rtio_clk_freq=150e6)
         self.comb += platform.request("sfp_tx_disable_n", 0).eq(0b1)
         self.comb += platform.request("sfp_tx_disable_n", 1).eq(0b1)
 
@@ -124,27 +103,12 @@ class DRTIOTestSoC(SoCCore):
         for gth in drtio_phy.gths:
             gth.cd_rtio_tx.clk.attr.add("keep")
             gth.cd_rtio_rx.clk.attr.add("keep")
-            platform.add_period_constraint(gth.cd_rtio_tx.clk, 1e9/gth.rtio_clk_freq)
-            platform.add_period_constraint(gth.cd_rtio_rx.clk, 1e9/gth.rtio_clk_freq)
+            platform.add_period_constraint(gth.cd_rtio_tx.clk, 1e9/rtio_clk_freq)
+            platform.add_period_constraint(gth.cd_rtio_rx.clk, 1e9/rtio_clk_freq)
             self.platform.add_false_path_constraints(
                 self.crg.cd_sys.clk,
                 gth.cd_rtio_tx.clk,
                 gth.cd_rtio_rx.clk)
-
-        analyzer_signals = [
-            drtio_phy.gths[0].tx_init.debug,
-            drtio_phy.gths[0].rx_init.debug,
-        ]
-        if nlanes >= 2:
-            analyzer_signals += [
-                drtio_phy.gths[0].tx_init.debug,
-                drtio_phy.gths[0].rx_init.debug,
-            ]
-        self.submodules.analyzer = LiteScopeAnalyzer(analyzer_signals, 64)
-
-    def do_exit(self, vns):
-        if hasattr(self, "analyzer"):
-            self.analyzer.export_csv(vns, "test/kcu105/analyzer.csv")
 
 def main():
     platform = kcu105.Platform()
@@ -157,7 +121,6 @@ def main():
         soc = DRTIOTestSoC(platform)
     builder = Builder(soc, output_dir="build_kcu105", csr_csv="test/kcu105/csr.csv")
     vns = builder.build()
-    soc.do_exit(vns)
 
 
 if __name__ == "__main__":

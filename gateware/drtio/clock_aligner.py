@@ -111,3 +111,4 @@ class BruteforceClockAligner(Module):
                 NextState("WAIT_COMMA")
             )
         )
+
