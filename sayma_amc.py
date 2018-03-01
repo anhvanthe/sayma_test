@@ -30,7 +30,7 @@ from litejesd204b.phy import LiteJESD204BPhyTX
 from litejesd204b.core import LiteJESD204BCoreTX
 from litejesd204b.core import LiteJESD204BCoreTXControl
 
-from drtio.gth_ultrascale import GTHChannelPLL, GTHQuadPLL, GTH
+from drtio.gth_ultrascale import *
 
 from liteiclink.serwb.phy import SERWBPLL, SERWBPHY
 from liteiclink.serwb.core import SERWBCore
@@ -676,11 +676,7 @@ class SERWBTestSoC(SoCCore):
         self.submodules.serwb_phy = serwb_phy
 
         serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
-        serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk,  40*1e9/serwb_pll.linerate)
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 2*1e9/serwb_pll.linerate)
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 8*1e9/serwb_pll.linerate)
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
             serwb_phy.serdes.cd_serwb_serdes.clk,
@@ -811,11 +807,7 @@ class FullTestSoC(SoCSDRAM):
         self.submodules.serwb_phy = serwb_phy
 
         serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
-        serwb_phy.serdes.cd_serwb_serdes_20x.clk.attr.add("keep")
         serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes.clk,  40*1e9/serwb_pll.linerate)
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_20x.clk, 2*1e9/serwb_pll.linerate)
-        platform.add_period_constraint(serwb_phy.serdes.cd_serwb_serdes_5x.clk, 8*1e9/serwb_pll.linerate)
         self.platform.add_false_path_constraints(
             self.crg.cd_sys.clk,
             serwb_phy.serdes.cd_serwb_serdes.clk,
