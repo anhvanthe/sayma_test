@@ -246,45 +246,38 @@ class _CRG(Module):
     def __init__(self, platform):
         self.clock_domains.cd_sys = ClockDomain()
         self.clock_domains.cd_sys4x = ClockDomain(reset_less=True)
-        self.clock_domains.cd_sys4x_dqs = ClockDomain(reset_less=True)
         self.clock_domains.cd_clk200 = ClockDomain()
 
         clk50 = platform.request("clk50")
-        clk50_bufr = Signal()
-
+        clk50_buffered = Signal()
         pll_locked = Signal()
         pll_fb = Signal()
-        pll_sys = Signal()
         pll_sys4x = Signal()
-        pll_sys4x_dqs = Signal()
         pll_clk200 = Signal()
         self.specials += [
-            Instance("BUFR", i_I=clk50, o_O=clk50_bufr),
-            Instance("PLLE2_BASE",
-                     p_STARTUP_WAIT="FALSE", o_LOCKED=pll_locked,
+            Instance("BUFG", i_I=clk50, o_O=clk50_buffered),
+            Instance("PLLE2_BASE", name="crg_main_mmcm",
+                attr={("LOC", "MMCME3_ADV_X1Y0")},
+                p_STARTUP_WAIT="FALSE", o_LOCKED=pll_locked,
 
-                     # VCO @ 1GHz
-                     p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=20.0,
-                     p_CLKFBOUT_MULT=20, p_DIVCLK_DIVIDE=1,
-                     i_CLKIN1=clk50_bufr, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
+                # VCO @ 1GHz
+                p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=20.0,
+                p_CLKFBOUT_MULT=20, p_DIVCLK_DIVIDE=1,
+                i_CLKIN1=clk50_buffered, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
 
-                     # 125MHz
-                     p_CLKOUT0_DIVIDE=8, p_CLKOUT0_PHASE=0.0, o_CLKOUT0=pll_sys,
+                # 500MHz
+                p_CLKOUT0_DIVIDE=2, p_CLKOUT0_PHASE=0.0, o_CLKOUT0=pll_sys4x,
 
-                     # 500MHz
-                     p_CLKOUT1_DIVIDE=2, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_sys4x,
-
-                     # 200MHz
-                     p_CLKOUT2_DIVIDE=5, p_CLKOUT2_PHASE=0.0, o_CLKOUT2=pll_clk200
+                # 200MHz
+                p_CLKOUT1_DIVIDE=5, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_clk200,
             ),
-            Instance("BUFG", i_I=pll_sys, o_O=self.cd_sys.clk),
-            Instance("BUFG", i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
-            Instance("BUFG", i_I=pll_sys4x_dqs, o_O=self.cd_sys4x_dqs.clk),
+            Instance("BUFGCE_DIV", p_BUFGCE_DIVIDE=4,
+                i_CE=1, i_I=pll_sys4x, o_O=self.cd_sys.clk),
+            Instance("BUFGCE", i_CE=1, i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
             Instance("BUFG", i_I=pll_clk200, o_O=self.cd_clk200.clk),
             AsyncResetSynchronizer(self.cd_sys, ~pll_locked),
             AsyncResetSynchronizer(self.cd_clk200, ~pll_locked),
         ]
-        platform.add_platform_command("set_property CLOCK_DEDICATED_ROUTE BACKBONE [get_nets crg_clk50_bufr]")
 
         reset_counter = Signal(4, reset=15)
         ic_reset = Signal(reset=1)
@@ -342,7 +335,6 @@ class SDRAMTestSoC(SoCSDRAM):
             self.add_wb_master(self.cpu_or_bridge.wishbone)
 
         self.crg.cd_sys.clk.attr.add("keep")
-        platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
         # firmware
         firmware_ram_size = 0x10000
@@ -351,11 +343,12 @@ class SDRAMTestSoC(SoCSDRAM):
 
         # sdram
         self.submodules.ddrphy = kusddrphy.KUSDDRPHY(platform.request(ddram))
+        self.add_constant("DDRPHY_WLEVEL", None)
+        self.add_constant("KUSDDRPHY", None)
         sdram_module = MT41J256M16(self.clk_freq, "1:4")
         self.register_sdram(self.ddrphy,
                             sdram_module.geom_settings,
                             sdram_module.timing_settings)
-        self.add_constant("KUSDDRPHY", None)
 
         # sdram bist
         generator_user_port = self.sdram.crossbar.get_port(mode="write")
@@ -657,7 +650,6 @@ class SERWBTestSoC(SoCCore):
         self.add_wb_master(self.cpu_or_bridge.wishbone)
 
         self.crg.cd_sys.clk.attr.add("keep")
-        platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
         # amc <--> rtm usr_uart / aux_uart redirection
         aux_uart_pads = platform.request("serial", 1)
@@ -775,7 +767,6 @@ class FullTestSoC(SoCSDRAM):
         self.submodules.crg = _CRG(platform)
 
         self.crg.cd_sys.clk.attr.add("keep")
-        platform.add_period_constraint(self.crg.cd_sys.clk, 8.0)
 
         # amc <--> rtm usr_uart / aux_uart redirection
         aux_uart_pads = platform.request("serial", 1)
@@ -791,11 +782,12 @@ class FullTestSoC(SoCSDRAM):
 
         # sdram
         self.submodules.ddrphy = kusddrphy.KUSDDRPHY(platform.request("ddram_64"))
+        self.add_constant("DDRPHY_WLEVEL", None)
+        self.add_constant("KUSDDRPHY", None)
         sdram_module = MT41J256M16(self.clk_freq, "1:4")
         self.register_sdram(self.ddrphy,
                             sdram_module.geom_settings,
                             sdram_module.timing_settings)
-        self.add_constant("KUSDDRPHY", None)
 
         # amc rtm link
         serwb_pll = SERWBPLL(125e6, 1.25e9/2, vco_div=2)
