@@ -214,14 +214,14 @@ void sdrwloff(void)
 
 #define ERR_DDRPHY_DELAY 512
 
-unsigned int dqs_taps_offset;
-
 static void write_level_eyescan(void)
 {
 	int i, j, k;
 	int dq_address;
 	unsigned char dq;
-	printf("Write leveling dqs taps offset: %d\n", dqs_taps_offset);
+#ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
+	printf("Write leveling dqs taps offset: %d\n", ddrphy_wdly_dqs_taps_read());
+#endif
 	printf("Write leveling eyescan:\n");
 	sdrwlon();
 	cdelay(100);
@@ -231,8 +231,10 @@ static void write_level_eyescan(void)
 		ddrphy_dly_sel_write(1 << i);
 		ddrphy_wdly_dq_rst_write(1);
 		ddrphy_wdly_dqs_rst_write(1);
-		for(k=0; k<dqs_taps_offset; k++)
+#ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
+		for(k=0; k<ddrphy_wdly_dqs_taps_read(); k++)
 			ddrphy_wdly_dqs_inc_write(1);
+#endif
 		cdelay(10);
 		for(j=0; j<ERR_DDRPHY_DELAY; j++) {
 			ddrphy_wlevel_strobe_write(1);
@@ -257,7 +259,9 @@ static int write_level(int *delay, int *high_skew)
 	unsigned char dq;
 	int ok;
 
-	printf("Write leveling dqs taps offset: %d\n", dqs_taps_offset);
+#ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
+	printf("Write leveling dqs taps offset: %d\n", ddrphy_wdly_dqs_taps_read());
+#endif
 	printf("Write leveling: ");
 
 	sdrwlon();
@@ -267,8 +271,10 @@ static int write_level(int *delay, int *high_skew)
 		ddrphy_dly_sel_write(1 << i);
 		ddrphy_wdly_dq_rst_write(1);
 		ddrphy_wdly_dqs_rst_write(1);
-		for(j=0; j<dqs_taps_offset; j++)
+#ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
+		for(j=0; j<ddrphy_wdly_dqs_taps_read(); j++)
 			ddrphy_wdly_dqs_inc_write(1);
+#endif
 
 		delay[i] = 0;
 
@@ -674,7 +680,6 @@ int sdrinit(void)
 
 	init_sequence();
 #ifdef CSR_DDRPHY_BASE
-	dqs_taps_offset = ddrphy_wdly_dqs_taps_read();
 #if CSR_DDRPHY_EN_VTC_ADDR
 	ddrphy_en_vtc_write(0);
 #endif
