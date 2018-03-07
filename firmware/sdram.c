@@ -214,13 +214,50 @@ void sdrwloff(void)
 
 #define ERR_DDRPHY_DELAY 512
 
+unsigned int dqs_taps_offset;
+
+static void write_level_eyescan(void)
+{
+	int i, j, k;
+	int dq_address;
+	unsigned char dq;
+	printf("Write leveling dqs taps offset: %d\n", dqs_taps_offset);
+	printf("Write leveling eyescan:\n");
+	sdrwlon();
+	cdelay(100);
+	for(i=0;i<DFII_PIX_DATA_SIZE/2;i++) {
+		printf("Module %d (scan: 0 to %d):\n", 7-i, ERR_DDRPHY_DELAY-1);
+		dq_address = sdram_dfii_pix_rddata_addr[0]+4*(DFII_PIX_DATA_SIZE/2-1-i);
+		ddrphy_dly_sel_write(1 << i);
+		ddrphy_wdly_dq_rst_write(1);
+		ddrphy_wdly_dqs_rst_write(1);
+		for(k=0; k<dqs_taps_offset; k++)
+			ddrphy_wdly_dqs_inc_write(1);
+		cdelay(10);
+		for(j=0; j<ERR_DDRPHY_DELAY; j++) {
+			ddrphy_wlevel_strobe_write(1);
+			cdelay(10);
+			dq = MMPTR(dq_address);
+			if(dq == 0)
+				printf("0");
+			else
+				printf("1");
+			ddrphy_wdly_dq_inc_write(1);
+			ddrphy_wdly_dqs_inc_write(1);
+		}
+		printf("\n");
+	}
+	sdrwloff();
+}
+
 static int write_level(int *delay, int *high_skew)
 {
-	int i;
+	int i, j;
 	int dq_address;
 	unsigned char dq;
 	int ok;
 
+	printf("Write leveling dqs taps offset: %d\n", dqs_taps_offset);
 	printf("Write leveling: ");
 
 	sdrwlon();
@@ -230,6 +267,8 @@ static int write_level(int *delay, int *high_skew)
 		ddrphy_dly_sel_write(1 << i);
 		ddrphy_wdly_dq_rst_write(1);
 		ddrphy_wdly_dqs_rst_write(1);
+		for(j=0; j<dqs_taps_offset; j++)
+			ddrphy_wdly_dqs_inc_write(1);
 
 		delay[i] = 0;
 
@@ -282,39 +321,6 @@ static int write_level(int *delay, int *high_skew)
 		printf("failed\n");
 
 	return ok;
-}
-
-
-static void write_level_eyescan(void)
-{
-	int i, j;
-	int dq_address;
-	unsigned char dq;
-
-	printf("Write leveling eyescan:\n");
-	sdrwlon();
-	cdelay(100);
-	for(i=0;i<DFII_PIX_DATA_SIZE/2;i++) {
-		printf("Module %d (scan: 0 to %d):\n", 7-i, ERR_DDRPHY_DELAY-1);
-		dq_address = sdram_dfii_pix_rddata_addr[0]+4*(DFII_PIX_DATA_SIZE/2-1-i);
-		ddrphy_dly_sel_write(1 << i);
-		ddrphy_wdly_dq_rst_write(1);
-		ddrphy_wdly_dqs_rst_write(1);
-		cdelay(10);
-		for(j=0; j<ERR_DDRPHY_DELAY; j++) {
-			ddrphy_wlevel_strobe_write(1);
-			cdelay(10);
-			dq = MMPTR(dq_address);
-			if(dq == 0)
-				printf("0");
-			else
-				printf("1");
-			ddrphy_wdly_dq_inc_write(1);
-			ddrphy_wdly_dqs_inc_write(1);
-		}
-		printf("\n");
-	}
-	sdrwloff();
 }
 
 static void read_bitslip(int *delay, int *high_skew)
@@ -668,6 +674,7 @@ int sdrinit(void)
 
 	init_sequence();
 #ifdef CSR_DDRPHY_BASE
+	dqs_taps_offset = ddrphy_wdly_dqs_taps_read();
 #if CSR_DDRPHY_EN_VTC_ADDR
 	ddrphy_en_vtc_write(0);
 #endif
