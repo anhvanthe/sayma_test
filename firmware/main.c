@@ -74,7 +74,6 @@ static void help(void)
 	puts("help        - this command");
 	puts("reboot      - reboot CPU");
 #ifdef CSR_SDRAM_BASE
-	puts("memdqs      - get dqs taps");
 	puts("meminit     - run a memory initialization");
 	puts("memtest     - run a memory test");
 #endif
@@ -90,16 +89,6 @@ static void reboot(void)
 	asm("call r0");
 }
 
-static void memdqs(void) {
-	printf("dqs taps after init: %d\n", ddrphy_wdly_dqs_taps_read());
-	ddrphy_en_vtc_write(0);
-	ddrphy_dly_sel_write(1 << 0);
-	ddrphy_wdly_dq_rst_write(1);
-	ddrphy_wdly_dqs_rst_write(1);
-	printf("dqs taps after reset: %d\n", ddrphy_wdly_dqs_taps_read());
-	ddrphy_en_vtc_write(1);
-}
-
 static void console_service(void)
 {
 	char *str;
@@ -113,8 +102,6 @@ static void console_service(void)
 	else if(strcmp(token, "reboot") == 0)
 		reboot();
 #ifdef CSR_SDRAM_BASE
-	else if(strcmp(token, "memdqs") == 0)
-		memdqs();
 	else if(strcmp(token, "meminit") == 0)
 		sdrinit();
 	else if(strcmp(token, "memtest") == 0)
