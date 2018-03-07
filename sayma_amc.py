@@ -358,13 +358,12 @@ class SDRAMTestSoC(SoCSDRAM):
         self.add_constant("KUSDDRPHY", None)
 
         # sdram bist
-        if not with_cpu:
-            generator_user_port = self.sdram.crossbar.get_port(mode="write")
-            self.submodules.generator = LiteDRAMBISTGenerator(
-                generator_user_port, random=True)
-            checker_user_port = self.sdram.crossbar.get_port(mode="read")
-            self.submodules.checker = LiteDRAMBISTChecker(
-                checker_user_port, random=True)
+        generator_user_port = self.sdram.crossbar.get_port(mode="write")
+        self.submodules.generator = LiteDRAMBISTGenerator(
+            generator_user_port, random=True)
+        checker_user_port = self.sdram.crossbar.get_port(mode="read")
+        self.submodules.checker = LiteDRAMBISTChecker(
+            checker_user_port, random=True)
 
         # leds
         led_counter = Signal(32)
@@ -836,8 +835,8 @@ def main():
         print("missing target (ddram or jesd or drtio or serwb)")
         exit()
     if sys.argv[1] == "ddram":
-        dw = "32"
-        with_cpu = False
+        dw = "64"
+        with_cpu = True
         if len(sys.argv) > 2:
             dw = sys.argv[2]
         if len(sys.argv) > 3:
