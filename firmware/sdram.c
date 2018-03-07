@@ -668,7 +668,13 @@ int sdrinit(void)
 
 	init_sequence();
 #ifdef CSR_DDRPHY_BASE
+#if CSR_DDRPHY_EN_VTC_ADDR
+	ddrphy_en_vtc_write(0);
+#endif
 	sdrlevel();
+#if CSR_DDRPHY_EN_VTC_ADDR
+	ddrphy_en_vtc_write(1);
+#endif
 #endif
 	sdram_dfii_control_write(DFII_CONTROL_SEL);
 	if(!memtest())
