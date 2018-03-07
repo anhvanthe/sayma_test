@@ -195,7 +195,6 @@ void sdrwr(char *startaddr)
 }
 
 #ifdef CSR_DDRPHY_BASE
-#ifndef A7DDRPHY_BITSLIP
 
 void sdrwlon(void)
 {
@@ -409,7 +408,6 @@ static void read_delays(void)
 
 	printf("completed\n");
 }
-#endif /* A7DDRPHY_BITSLIP */
 #endif /* CSR_DDRPHY_BASE */
 
 static unsigned int seed_to_data_32(unsigned int seed, int random)
@@ -551,26 +549,6 @@ int memtest(void)
 }
 
 #ifdef CSR_DDRPHY_BASE
-#ifdef A7DDRPHY_BITSLIP
-int sdrlevel(void)
-{
-	int bitslip, delay, module;
-	int i;
-	sdram_dfii_control_write(DFII_CONTROL_SEL);
-	for(module=0; module<8; module++) {
-		ddrphy_dly_sel_write(1<<module);
-		ddrphy_rdly_dq_rst_write(1);
-		for(bitslip=0; bitslip<A7DDRPHY_BITSLIP; bitslip++) {
-			// 7-series SERDES in DDR mode needs 3 pulses for 1 bitslip
-			for(i=0; i<3; i++)
-				ddrphy_rdly_dq_bitslip_write(1);
-		}
-		for(delay=0; delay<A7DDRPHY_DELAY; delay++)
-			ddrphy_rdly_dq_inc_write(1);
-	}
-	return 1;
-}
-#else
 int sdrlevel(void)
 {
 	int delay[DFII_PIX_DATA_SIZE/2];
@@ -583,7 +561,6 @@ int sdrlevel(void)
 
 	return 1;
 }
-#endif
 #endif
 
 int sdrinit(void)
