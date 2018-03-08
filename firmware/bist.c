@@ -53,10 +53,10 @@ void bist_test(void) {
   			}
   			i++;
 			// write test (1Gb)
-			write_test(0x00000000, 128*1024*1024);
+			write_test(i%2048, 128*1024*1024);
 
 			// read test (1Gb)
-			read_test(0x00000000, 128*1024*1024);
+			read_test(i%2048, 128*1024*1024);
 
 			// infos
 			if (i%10 == 0) {
