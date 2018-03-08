@@ -42,7 +42,7 @@ static void read_test(unsigned int base, unsigned int length)
 	checker_start_write(1);
 	while(checker_done_read() == 0);
 	read_ticks = checker_ticks_read();
-	read_errors = checker_errors_read();
+	read_errors += checker_errors_read();
 }
 
 void bist_test(void) {
