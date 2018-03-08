@@ -7,6 +7,7 @@
 #include <console.h>
 
 #include "sdram.h"
+#include "bist.h"
 #include "serwb.h"
 
 static char *readstr(void)
@@ -76,6 +77,7 @@ static void help(void)
 #ifdef CSR_SDRAM_BASE
 	puts("meminit     - run a memory initialization");
 	puts("memtest     - run a memory test");
+	puts("membist     - run a memory bist");
 #endif
 #ifdef CSR_SERWB_PHY_BASE
     puts("serwb_init  - (re)initialize SERWB link");
@@ -106,6 +108,8 @@ static void console_service(void)
 		sdrinit();
 	else if(strcmp(token, "memtest") == 0)
 		memtest();
+	else if(strcmp(token, "membist") == 0)
+		bist_test();
 #endif
 #ifdef CSR_SERWB_PHY_BASE
 	else if(strcmp(token, "serwb_init") == 0)
