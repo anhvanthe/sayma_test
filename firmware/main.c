@@ -75,9 +75,9 @@ static void help(void)
 	puts("help        - this command");
 	puts("reboot      - reboot CPU");
 #ifdef CSR_SDRAM_BASE
-	puts("meminit     - run a memory initialization");
-	puts("memtest     - run a memory test");
-	puts("membist     - run a memory bist");
+	puts("mem_init    - run a memory initialization");
+	puts("mem_test    - run a memory test");
+	puts("mem_stress  - run a memory stress test");
 #endif
 #ifdef CSR_SERWB_PHY_BASE
     puts("serwb_init  - (re)initialize SERWB link");
@@ -104,11 +104,11 @@ static void console_service(void)
 	else if(strcmp(token, "reboot") == 0)
 		reboot();
 #ifdef CSR_SDRAM_BASE
-	else if(strcmp(token, "meminit") == 0)
+	else if(strcmp(token, "mem_init") == 0)
 		sdrinit();
-	else if(strcmp(token, "memtest") == 0)
+	else if(strcmp(token, "mem_test") == 0)
 		memtest();
-	else if(strcmp(token, "membist") == 0)
+	else if(strcmp(token, "mem_stress") == 0)
 		bist_test();
 #endif
 #ifdef CSR_SERWB_PHY_BASE
