@@ -218,15 +218,19 @@ static void write_level_eyescan(void)
 {
 	int i, j, k;
 	int dq_address;
+	int err_ddrphy_wdly;
 	unsigned char dq;
+
+	err_ddrphy_wdly = ERR_DDRPHY_DELAY;
 #ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
 	printf("Write leveling dqs taps offset: %d\n", ddrphy_wdly_dqs_taps_read());
+	err_ddrphy_wdly = ERR_DDRPHY_DELAY - ddrphy_wdly_dqs_taps_read();
 #endif
 	printf("Write leveling eyescan:\n");
 	sdrwlon();
 	cdelay(100);
 	for(i=0;i<DFII_PIX_DATA_SIZE/2;i++) {
-		printf("Module %d (scan: 0 to %d):\n", 7-i, ERR_DDRPHY_DELAY-1);
+		printf("Module %d (scan: 0 to %d):\n", 7-i, err_ddrphy_wdly-1);
 		dq_address = sdram_dfii_pix_rddata_addr[0]+4*(DFII_PIX_DATA_SIZE/2-1-i);
 		ddrphy_dly_sel_write(1 << i);
 		ddrphy_wdly_dq_rst_write(1);
@@ -236,7 +240,7 @@ static void write_level_eyescan(void)
 			ddrphy_wdly_dqs_inc_write(1);
 #endif
 		cdelay(10);
-		for(j=0; j<ERR_DDRPHY_DELAY; j++) {
+		for(j=0; j<err_ddrphy_wdly; j++) {
 			ddrphy_wlevel_strobe_write(1);
 			cdelay(10);
 			dq = MMPTR(dq_address);
@@ -257,10 +261,13 @@ static int write_level(int *delay, int *high_skew)
 	int i, j;
 	int dq_address;
 	unsigned char dq;
+	int err_ddrphy_wdly;
 	int ok;
 
+	err_ddrphy_wdly = ERR_DDRPHY_DELAY;
 #ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
 	printf("Write leveling dqs taps offset: %d\n", ddrphy_wdly_dqs_taps_read());
+	err_ddrphy_wdly = ERR_DDRPHY_DELAY - ddrphy_wdly_dqs_taps_read();
 #endif
 	printf("Write leveling: ");
 
@@ -289,7 +296,7 @@ static int write_level(int *delay, int *high_skew)
 			high_skew[i] = 1;
 			while(dq != 0) {
 				delay[i]++;
-				if(delay[i] >= ERR_DDRPHY_DELAY)
+				if(delay[i] >= err_ddrphy_wdly)
 					break;
 				ddrphy_wdly_dq_inc_write(1);
 				ddrphy_wdly_dqs_inc_write(1);
@@ -302,7 +309,7 @@ static int write_level(int *delay, int *high_skew)
 
 		while(dq == 0) {
 			delay[i]++;
-			if(delay[i] >= ERR_DDRPHY_DELAY)
+			if(delay[i] >= err_ddrphy_wdly)
 				break;
 			ddrphy_wdly_dq_inc_write(1);
 			ddrphy_wdly_dqs_inc_write(1);
@@ -317,7 +324,7 @@ static int write_level(int *delay, int *high_skew)
 	ok = 1;
 	for(i=DFII_PIX_DATA_SIZE/2-1;i>=0;i--) {
 		printf("%2d%c ", delay[i], high_skew[i] ? '*' : ' ');
-		if(delay[i] >= ERR_DDRPHY_DELAY)
+		if(delay[i] >= err_ddrphy_wdly)
 			ok = 0;
 	}
 
