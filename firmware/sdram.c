@@ -11,6 +11,8 @@
 
 #include "sdram.h"
 
+//#define HIGH_SKEW
+
 static void cdelay(int i)
 {
 	while(i > 0) {
@@ -224,7 +226,9 @@ static void write_level_eyescan(void)
 	err_ddrphy_wdly = ERR_DDRPHY_DELAY;
 #ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
 	printf("Write leveling dqs taps offset: %d\n", ddrphy_wdly_dqs_taps_read());
+#ifndef HIGH_SKEW
 	err_ddrphy_wdly = ERR_DDRPHY_DELAY - ddrphy_wdly_dqs_taps_read();
+#endif
 #endif
 	printf("Write leveling eyescan:\n");
 	sdrwlon();
@@ -238,6 +242,13 @@ static void write_level_eyescan(void)
 #ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
 		for(k=0; k<ddrphy_wdly_dqs_taps_read(); k++)
 			ddrphy_wdly_dqs_inc_write(1);
+#endif
+#ifdef HIGH_SKEW
+		/* artificial delay to test high skew */
+		for(j=0; j<128; j++) {
+			ddrphy_wdly_dq_inc_write(1);
+			ddrphy_wdly_dqs_inc_write(1);
+		}
 #endif
 		cdelay(10);
 		for(j=0; j<err_ddrphy_wdly; j++) {
@@ -267,7 +278,9 @@ static int write_level(int *delay, int *high_skew)
 	err_ddrphy_wdly = ERR_DDRPHY_DELAY;
 #ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
 	printf("Write leveling dqs taps offset: %d\n", ddrphy_wdly_dqs_taps_read());
+#ifndef HIGH_SKEW
 	err_ddrphy_wdly = ERR_DDRPHY_DELAY - ddrphy_wdly_dqs_taps_read();
+#endif
 #endif
 	printf("Write leveling: ");
 
@@ -281,6 +294,13 @@ static int write_level(int *delay, int *high_skew)
 #ifdef CSR_DDRPHY_WDLY_DQS_TAPS_ADDR
 		for(j=0; j<ddrphy_wdly_dqs_taps_read(); j++)
 			ddrphy_wdly_dqs_inc_write(1);
+#endif
+#ifdef HIGH_SKEW
+		/* artificial delay to test high skew */
+		for(j=0; j<128; j++) {
+			ddrphy_wdly_dq_inc_write(1);
+			ddrphy_wdly_dqs_inc_write(1);
+		}
 #endif
 
 		delay[i] = 0;
@@ -306,6 +326,13 @@ static int write_level(int *delay, int *high_skew)
 			 }
 		} else
 			high_skew[i] = 0;
+
+		/* Get a bit further into the working zone */
+		for(j=0; j<32; j++) {
+			delay[i]++;
+			ddrphy_wdly_dq_inc_write(1);
+			ddrphy_wdly_dqs_inc_write(1);
+		}
 
 		while(dq == 0) {
 			delay[i]++;
@@ -485,7 +512,7 @@ static void read_delays(void)
 		delay_min = delay;
 
 		/* Get a bit further into the working zone */
-		for(j=0;j<8;j++) {
+		for(j=0;j<32;j++) {
 			delay += 1;
 			ddrphy_rdly_dq_inc_write(1);
 		}
