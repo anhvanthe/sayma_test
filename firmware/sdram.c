@@ -411,6 +411,7 @@ static void read_delays_eyescan(void)
 			else
 				printf("0");
 			ddrphy_rdly_dq_inc_write(1);
+			cdelay(15);
 		}
 
 		printf("\n");
@@ -479,6 +480,7 @@ static void read_delays(void)
 			if(delay >= ERR_DDRPHY_DELAY)
 				break;
 			ddrphy_rdly_dq_inc_write(1);
+			cdelay(15);
 		}
 		delay_min = delay;
 
@@ -505,6 +507,7 @@ static void read_delays(void)
 			if(delay >= ERR_DDRPHY_DELAY)
 				break;
 			ddrphy_rdly_dq_inc_write(1);
+			cdelay(15);
 		}
 		delay_max = delay;
 
