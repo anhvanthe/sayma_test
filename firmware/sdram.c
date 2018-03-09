@@ -230,7 +230,7 @@ static void write_level_eyescan(void)
 	sdrwlon();
 	cdelay(100);
 	for(i=0;i<DFII_PIX_DATA_SIZE/2;i++) {
-		printf("Module %d (scan: 0 to %d):\n", 7-i, err_ddrphy_wdly-1);
+		printf("Module %d (scan: 0 to %d):\n", DFII_PIX_DATA_SIZE/2-1-i, err_ddrphy_wdly-1);
 		dq_address = sdram_dfii_pix_rddata_addr[0]+4*(DFII_PIX_DATA_SIZE/2-1-i);
 		ddrphy_dly_sel_write(1 << i);
 		ddrphy_wdly_dq_rst_write(1);
@@ -393,7 +393,7 @@ static void read_delays_eyescan(void)
 	sdram_dfii_pird_address_write(0);
 	sdram_dfii_pird_baddress_write(0);
 	for(i=0;i<DFII_PIX_DATA_SIZE/2;i++) {
-		printf("Module %d (scan: 0 to %d):\n", 7-i, ERR_DDRPHY_DELAY-1);
+		printf("Module %d (scan: 0 to %d):\n", DFII_PIX_DATA_SIZE/2-i, ERR_DDRPHY_DELAY-1);
 		ddrphy_dly_sel_write(1 << (DFII_PIX_DATA_SIZE/2-i-1));
 		ddrphy_rdly_dq_rst_write(1);
 		for(j=0; j<ERR_DDRPHY_DELAY; j++) {
