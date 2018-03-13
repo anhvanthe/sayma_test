@@ -253,12 +253,19 @@ class _CRG(Module):
         self.clock_domains.cd_sys4x = ClockDomain(reset_less=True)
         self.clock_domains.cd_clk200 = ClockDomain()
 
+
+
         clk50 = platform.request("clk50")
         clk50_buffered = Signal()
         pll_locked = Signal()
         pll_fb = Signal()
         pll_sys4x = Signal()
         pll_clk200 = Signal()
+
+        ic_reset = Signal(reset=1)
+        ic_ready = Signal()
+        ic_done = Signal()
+
         self.specials += [
             Instance("BUFG", i_I=clk50, o_O=clk50_buffered),
             Instance("PLLE2_BASE", name="crg_main_mmcm",
@@ -280,20 +287,26 @@ class _CRG(Module):
                 i_CE=1, i_I=pll_sys4x, o_O=self.cd_sys.clk),
             Instance("BUFGCE", i_CE=1, i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
             Instance("BUFG", i_I=pll_clk200, o_O=self.cd_clk200.clk),
-            AsyncResetSynchronizer(self.cd_sys, ~pll_locked),
-            AsyncResetSynchronizer(self.cd_clk200, ~pll_locked),
+            AsyncResetSynchronizer(self.cd_sys, ~pll_locked | ~ic_done),
+			AsyncResetSynchronizer(self.cd_clk200, ~pll_locked),
         ]
 
         reset_counter = Signal(4, reset=15)
-        ic_reset = Signal(reset=1)
-        self.sync.clk200 += \
+        done_counter = Signal(6, reset=63)
+        self.sync.clk200 += [
             If(reset_counter != 0,
                 reset_counter.eq(reset_counter - 1)
             ).Else(
                 ic_reset.eq(0)
+            ),
+            If(done_counter != 0,
+                done_counter.eq(done_counter - 1)
+            ).Else(
+                ic_done.eq(1)
             )
+        ]
         self.specials += Instance("IDELAYCTRL", p_SIM_DEVICE="ULTRASCALE",
-            i_REFCLK=ClockSignal("clk200"), i_RST=ic_reset)
+            i_REFCLK=ClockSignal("clk200"), i_RST=ic_reset, o_RDY=ic_ready)
 
 
 def _build_version(with_time=True):
