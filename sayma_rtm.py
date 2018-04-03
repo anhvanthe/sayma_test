@@ -108,7 +108,6 @@ class _CRG(Module):
         self.clock_domains.cd_clk200 = ClockDomain()
 
         self.serwb_refclk = Signal()
-        self.serwb_reset = Signal()
 
         pll_locked = Signal()
         pll_fb = Signal()
@@ -141,10 +140,10 @@ class _CRG(Module):
             Instance("BUFG", i_I=pll_sys, o_O=self.cd_sys.clk),
             Instance("BUFG", i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
             Instance("BUFG", i_I=pll_clk200, o_O=self.cd_clk200.clk),
-            AsyncResetSynchronizer(self.cd_sys0p2x, ~pll_locked | self.serwb_reset),
-            AsyncResetSynchronizer(self.cd_sys, ~pll_locked | self.serwb_reset),
-            AsyncResetSynchronizer(self.cd_sys4x, ~pll_locked | self.serwb_reset),
-            AsyncResetSynchronizer(self.cd_clk200, ~pll_locked | self.serwb_reset)
+            AsyncResetSynchronizer(self.cd_sys0p2x, ~pll_locked),
+            AsyncResetSynchronizer(self.cd_sys, ~pll_locked),
+            AsyncResetSynchronizer(self.cd_sys4x, ~pll_locked),
+            AsyncResetSynchronizer(self.cd_clk200, ~pll_locked)
         ]
 
         reset_counter = Signal(4, reset=15)
