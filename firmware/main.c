@@ -77,7 +77,9 @@ static void help(void)
 #ifdef CSR_SDRAM_BASE
 	puts("mem_init    - run a memory initialization");
 	puts("mem_test    - run a memory test");
+#ifdef CSR_GENERATOR_BASE
 	puts("mem_stress  - run a memory stress test");
+#endif
 #endif
 #ifdef CSR_SERWB_PHY_BASE
     puts("serwb_init  - (re)initialize SERWB link");
@@ -108,8 +110,10 @@ static void console_service(void)
 		sdrinit();
 	else if(strcmp(token, "mem_test") == 0)
 		memtest();
+#ifdef CSR_GENERATOR_BASE
 	else if(strcmp(token, "mem_stress") == 0)
 		bist_test();
+#endif
 #endif
 #ifdef CSR_SERWB_PHY_BASE
 	else if(strcmp(token, "serwb_init") == 0)
