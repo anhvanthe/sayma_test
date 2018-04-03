@@ -252,8 +252,7 @@ class _CRG(Module):
         self.clock_domains.cd_sys = ClockDomain()
         self.clock_domains.cd_sys4x = ClockDomain(reset_less=True)
         self.clock_domains.cd_clk200 = ClockDomain()
-
-
+        self.clock_domains.cd_ic = ClockDomain()
 
         clk50 = platform.request("clk50")
         clk50_buffered = Signal()
@@ -261,11 +260,6 @@ class _CRG(Module):
         pll_fb = Signal()
         pll_sys4x = Signal()
         pll_clk200 = Signal()
-
-        ic_reset = Signal(reset=1)
-        ic_ready = Signal()
-        ic_done = Signal()
-
         self.specials += [
             Instance("BUFG", i_I=clk50, o_O=clk50_buffered),
             Instance("PLLE2_BASE", name="crg_main_mmcm",
@@ -283,30 +277,54 @@ class _CRG(Module):
                 # 200MHz
                 p_CLKOUT1_DIVIDE=5, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_clk200,
             ),
-            Instance("BUFGCE_DIV", p_BUFGCE_DIVIDE=4,
+            Instance("BUFGCE_DIV", name="main_bufgce_div",
+                attr={("LOC", "BUFGCE_DIV_X1Y0")},
+                p_BUFGCE_DIVIDE=4,
                 i_CE=1, i_I=pll_sys4x, o_O=self.cd_sys.clk),
-            Instance("BUFGCE", i_CE=1, i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
+            Instance("BUFGCE", name="main_bufgce",
+                attr={("LOC", "BUFGCE_X1Y14")},
+                i_CE=1, i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
             Instance("BUFG", i_I=pll_clk200, o_O=self.cd_clk200.clk),
-            AsyncResetSynchronizer(self.cd_sys, ~pll_locked | ~ic_done),
-			AsyncResetSynchronizer(self.cd_clk200, ~pll_locked),
+            AsyncResetSynchronizer(self.cd_clk200, ~pll_locked),
         ]
 
-        reset_counter = Signal(4, reset=15)
-        done_counter = Signal(6, reset=63)
-        self.sync.clk200 += [
-            If(reset_counter != 0,
-                reset_counter.eq(reset_counter - 1)
+        # https://www.xilinx.com/support/answers/67885.html
+        platform.add_platform_command(
+            "set_property CLOCK_DELAY_GROUP ULTRASCALE_IS_AWFUL [get_nets -of [get_pins main_bufgce_div/O]]")
+        platform.add_platform_command(
+            "set_property CLOCK_DELAY_GROUP ULTRASCALE_IS_AWFUL [get_nets -of [get_pins main_bufgce/O]]")
+        platform.add_platform_command(
+            "set_property USER_CLOCK_ROOT X2Y2 [get_nets -of [get_pins main_bufgce_div/O]]")
+        platform.add_platform_command(
+            "set_property USER_CLOCK_ROOT X2Y2 [get_nets -of [get_pins main_bufgce/O]]")
+
+        ic_reset_counter = Signal(max=64, reset=63)
+        ic_reset = Signal(reset=1)
+        self.sync.clk200 += \
+            If(ic_reset_counter != 0,
+                ic_reset_counter.eq(ic_reset_counter - 1)
             ).Else(
                 ic_reset.eq(0)
-            ),
-            If(done_counter != 0,
-                done_counter.eq(done_counter - 1)
-            ).Else(
-                ic_done.eq(1)
+            )
+        ic_rdy = Signal()
+        ic_rdy_counter = Signal(max=64, reset=63)
+        self.cd_sys.rst.reset = 1
+        self.comb += self.cd_ic.clk.eq(self.cd_sys.clk)
+        self.sync.ic += [
+            If(ic_rdy,
+                If(ic_rdy_counter != 0,
+                    ic_rdy_counter.eq(ic_rdy_counter - 1)
+                ).Else(
+                    self.cd_sys.rst.eq(0)
+                )
             )
         ]
-        self.specials += Instance("IDELAYCTRL", p_SIM_DEVICE="ULTRASCALE",
-            i_REFCLK=ClockSignal("clk200"), i_RST=ic_reset, o_RDY=ic_ready)
+        self.specials += [
+            Instance("IDELAYCTRL", p_SIM_DEVICE="ULTRASCALE",
+                     i_REFCLK=ClockSignal("clk200"), i_RST=ic_reset,
+                     o_RDY=ic_rdy),
+            AsyncResetSynchronizer(self.cd_ic, ic_reset)
+        ]
 
 
 def _build_version(with_time=True):
