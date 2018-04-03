@@ -32,7 +32,7 @@ from litejesd204b.core import LiteJESD204BCoreTXControl
 
 from drtio.gth_ultrascale import *
 
-from liteiclink.serwb.phy import SERWBPLL, SERWBPHY
+from liteiclink.serwb.phy import SERWBPHY
 from liteiclink.serwb.core import SERWBCore
 
 from litescope import LiteScopeAnalyzer
@@ -249,6 +249,7 @@ class Platform(XilinxPlatform):
 
 class _CRG(Module):
     def __init__(self, platform):
+        self.clock_domains.cd_sys0p2x = ClockDomain()
         self.clock_domains.cd_sys = ClockDomain()
         self.clock_domains.cd_sys4x = ClockDomain(reset_less=True)
         self.clock_domains.cd_clk200 = ClockDomain()
@@ -258,6 +259,7 @@ class _CRG(Module):
         clk50_buffered = Signal()
         pll_locked = Signal()
         pll_fb = Signal()
+        pll_sys0p2x = Signal()
         pll_sys4x = Signal()
         pll_clk200 = Signal()
         self.specials += [
@@ -271,12 +273,16 @@ class _CRG(Module):
                 p_CLKFBOUT_MULT=20, p_DIVCLK_DIVIDE=1,
                 i_CLKIN1=clk50_buffered, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
 
+                # 25MHz
+                p_CLKOUT0_DIVIDE=40, p_CLKOUT0_PHASE=0.0, o_CLKOUT0=pll_sys0p2x,
+
                 # 500MHz
-                p_CLKOUT0_DIVIDE=2, p_CLKOUT0_PHASE=0.0, o_CLKOUT0=pll_sys4x,
+                p_CLKOUT1_DIVIDE=2, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_sys4x,
 
                 # 200MHz
-                p_CLKOUT1_DIVIDE=5, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_clk200,
+                p_CLKOUT2_DIVIDE=5, p_CLKOUT2_PHASE=0.0, o_CLKOUT2=pll_clk200,
             ),
+            Instance("BUFG", i_I=pll_sys0p2x,  o_O=self.cd_sys0p2x.clk),
             Instance("BUFGCE_DIV", name="main_bufgce_div",
                 attr={("LOC", "BUFGCE_DIV_X1Y0")},
                 p_BUFGCE_DIVIDE=4,
@@ -308,6 +314,7 @@ class _CRG(Module):
             )
         ic_rdy = Signal()
         ic_rdy_counter = Signal(max=64, reset=63)
+        self.cd_sys0p2x.rst.reset = 1
         self.cd_sys.rst.reset = 1
         self.comb += self.cd_ic.clk.eq(self.cd_sys.clk)
         self.sync.ic += [
@@ -315,6 +322,7 @@ class _CRG(Module):
                 If(ic_rdy_counter != 0,
                     ic_rdy_counter.eq(ic_rdy_counter - 1)
                 ).Else(
+                    self.cd_sys0p2x.rst.eq(0),
                     self.cd_sys.rst.eq(0)
                 )
             )
@@ -369,8 +377,6 @@ class SDRAMTestSoC(SoCSDRAM):
             self.add_cpu_or_bridge(UARTWishboneBridge(platform.request("serial"),
                                                       clk_freq, baudrate=115200))
             self.add_wb_master(self.cpu_or_bridge.wishbone)
-
-        self.crg.cd_sys.clk.attr.add("keep")
 
         # firmware
         firmware_ram_size = 0x10000
@@ -695,19 +701,8 @@ class SERWBTestSoC(SoCCore):
         ]
 
         # amc rtm link
-        serwb_pll = SERWBPLL(125e6, 1.25e9/2, vco_div=2)
-        self.comb += serwb_pll.refclk.eq(ClockSignal())
-        self.submodules += serwb_pll
-
-        serwb_phy = SERWBPHY(platform.device, serwb_pll, platform.request("serwb"), mode="master")
+        serwb_phy = SERWBPHY(platform.device, platform.request("serwb"), mode="master")
         self.submodules.serwb_phy = serwb_phy
-
-        serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
-        serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        self.platform.add_false_path_constraints(
-            self.crg.cd_sys.clk,
-            serwb_phy.serdes.cd_serwb_serdes.clk,
-            serwb_phy.serdes.cd_serwb_serdes_5x.clk)
 
         # wishbone slave
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=True)
@@ -826,19 +821,8 @@ class FullTestSoC(SoCSDRAM):
                             sdram_module.timing_settings)
 
         # amc rtm link
-        serwb_pll = SERWBPLL(125e6, 1.25e9/2, vco_div=2)
-        self.comb += serwb_pll.refclk.eq(ClockSignal())
-        self.submodules += serwb_pll
-
-        serwb_phy = SERWBPHY(platform.device, serwb_pll, platform.request("serwb"), mode="master")
+        serwb_phy = SERWBPHY(platform.device, platform.request("serwb"), mode="master")
         self.submodules.serwb_phy = serwb_phy
-
-        serwb_phy.serdes.cd_serwb_serdes.clk.attr.add("keep")
-        serwb_phy.serdes.cd_serwb_serdes_5x.clk.attr.add("keep")
-        self.platform.add_false_path_constraints(
-            self.crg.cd_sys.clk,
-            serwb_phy.serdes.cd_serwb_serdes.clk,
-            serwb_phy.serdes.cd_serwb_serdes_5x.clk)
 
         # wishbone slave
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=True)
