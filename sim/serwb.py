@@ -5,17 +5,18 @@ import sys
 sys.path.append("../")
 
 from migen import *
-from migen.genlib.io import CRG
+from migen.genlib.resetsync import AsyncResetSynchronizer
 
 from litex.build.generic_platform import *
 from litex.build.xilinx import XilinxPlatform
 
-from gateware.transceiver.serwb import *
+from liteiclink.serwb.phy import SERWBPHY
+from liteiclink.serwb.core import SERWBCore
 
 
 _io = [
     ("clk125", 0, Pins("X")),
-    ("amc_serdes", 0,
+    ("serwb_amc", 0,
         Subsignal("clk_p", Pins("X")),
         Subsignal("clk_n", Pins("X")),
         Subsignal("tx_p", Pins("X")),
@@ -23,7 +24,7 @@ _io = [
         Subsignal("rx_p", Pins("X")),
         Subsignal("rx_n", Pins("X")),
     ),
-    ("rtm_serdes", 0,
+    ("serwb_rtm", 0,
         Subsignal("clk_p", Pins("X")),
         Subsignal("clk_n", Pins("X")),
         Subsignal("tx_p", Pins("X")),
@@ -39,30 +40,68 @@ class Platform(XilinxPlatform):
         XilinxPlatform.__init__(self, "", _io)
 
 
-class AMCRTMLinkSim(Module):
+class CRG(Module):
+    def __init__(self, clk125):
+        self.clock_domains.cd_sys = ClockDomain()
+        self.clock_domains.cd_sys4x = ClockDomain()
+        self.clock_domains.cd_clk200 = ClockDomain()
+
+        pll_locked = Signal()
+        pll_fb = Signal()
+        pll_sys = Signal()
+        pll_sys4x = Signal()
+        pll_clk200 = Signal()
+        self.specials += [
+            Instance("PLLE2_BASE",
+                     p_STARTUP_WAIT="FALSE", o_LOCKED=pll_locked,
+
+                     # VCO @ 1GHz
+                     p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=8.0,
+                     p_CLKFBOUT_MULT=8, p_DIVCLK_DIVIDE=1,
+                     i_CLKIN1=clk125, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
+
+                     # 125MHz
+                     p_CLKOUT0_DIVIDE=8, p_CLKOUT0_PHASE=0.0, o_CLKOUT0=pll_sys,
+
+                     # 500MHz
+                     p_CLKOUT1_DIVIDE=2, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_sys4x,
+
+                     # 200MHz
+                     p_CLKOUT2_DIVIDE=5, p_CLKOUT2_PHASE=0.0, o_CLKOUT2=pll_clk200
+            ),
+            Instance("BUFG", i_I=pll_sys, o_O=self.cd_sys.clk),
+            Instance("BUFG", i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
+            Instance("BUFG", i_I=pll_clk200, o_O=self.cd_clk200.clk),
+            AsyncResetSynchronizer(self.cd_sys, ~pll_locked),
+            AsyncResetSynchronizer(self.cd_sys4x, ~pll_locked),
+            AsyncResetSynchronizer(self.cd_clk200, ~pll_locked)
+        ]
+
+        reset_counter = Signal(4, reset=15)
+        ic_reset = Signal(reset=1)
+        self.sync.clk200 += \
+            If(reset_counter != 0,
+                reset_counter.eq(reset_counter - 1)
+            ).Else(
+                ic_reset.eq(0)
+            )
+        self.specials += Instance("IDELAYCTRL", i_REFCLK=ClockSignal("clk200"), i_RST=ic_reset)
+
+
+class SERWBSim(Module):
     def __init__(self, platform):
         clk_freq = 125e6
         self.submodules.crg = CRG(platform.request("clk125"))
 
         # amc
-        amc_pll = SerdesPLL(125e6, 1e9)
-        self.submodules += amc_pll
-        self.comb += amc_pll.refclk.eq(ClockSignal())
-        self.submodules.amc_serdes = AMCMasterSerdes(amc_pll, platform.request("amc_serdes"))
-        self.comb += self.amc_serdes.tx_data.eq(0x5a)
-        self.submodules.amc_serdes_init = AMCMasterSerdesInit(self.amc_serdes)
+        self.submodules.serwb_phy_amc = SERWBPHY("xcku040", platform.request("serwb_amc"), mode="master")
 
         # rtm
-        rtm_pll = SerdesPLL(125e6, 1e9)
-        self.submodules += rtm_pll
-        self.submodules.rtm_serdes = RTMSlaveSerdes(rtm_pll, platform.request("rtm_serdes"))
-        self.comb += self.rtm_serdes.tx_data.eq(0x5a)
-        self.submodules.rtm_serdes_init = RTMSlaveSerdesInit(self.rtm_serdes)
-
+        self.submodules.serwb_phy_rtm = SERWBPHY("xc7a15t", platform.request("serwb_rtm"), mode="slave")
 
 def generate_top():
     platform = Platform()
-    soc = AMCRTMLinkSim(platform)
+    soc = SERWBSim(platform)
     platform.build(soc, build_dir="./", run=False)
 
 def generate_top_tb():
@@ -76,27 +115,27 @@ reg clk125;
 initial clk125 = 1'b1;
 always #4 clk125 = ~clk125;
 
-wire serdes_clk_p;
-wire serdes_clk_n;
-wire serdes_tx_p;
-wire serdes_tx_n;
-wire serdes_rx_p;
-wire serdes_rx_n;
+wire serwb_clk_p;
+wire serwb_clk_n;
+wire serwb_tx_p;
+wire serwb_tx_n;
+wire serwb_rx_p;
+wire serwb_rx_n;
 
 top dut (
     .clk125(clk125),
-    .amc_serdes_clk_p(serdes_clk_p),
-    .amc_serdes_clk_n(serdes_clk_n),
-    .amc_serdes_tx_p(serdes_tx_p),
-    .amc_serdes_tx_n(serdes_tx_n),
-    .amc_serdes_rx_p(serdes_rx_p),
-    .amc_serdes_rx_n(serdes_rx_n),
-    .rtm_serdes_clk_p(serdes_clk_p),
-    .rtm_serdes_clk_n(serdes_clk_n),
-    .rtm_serdes_tx_p(serdes_rx_p),
-    .rtm_serdes_tx_n(serdes_rx_n),
-    .rtm_serdes_rx_p(serdes_tx_p),
-    .rtm_serdes_rx_n(serdes_tx_n)
+    .serwb_amc_clk_p(serwb_clk_p),
+    .serwb_amc_clk_n(serwb_clk_n),
+    .serwb_amc_tx_p(serwb_tx_p),
+    .serwb_amc_tx_n(serwb_tx_n),
+    .serwb_amc_rx_p(serwb_rx_p),
+    .serwb_amc_rx_n(serwb_rx_n),
+    .serwb_rtm_clk_p(serwb_clk_p),
+    .serwb_rtm_clk_n(serwb_clk_n),
+    .serwb_rtm_tx_p(serwb_rx_p),
+    .serwb_rtm_tx_n(serwb_rx_n),
+    .serwb_rtm_rx_p(serwb_tx_p),
+    .serwb_rtm_rx_n(serwb_tx_n)
 );
 
 endmodule""")
