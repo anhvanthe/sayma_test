@@ -328,17 +328,6 @@ class _CRG(Module):
         ]
 
 
-def _build_version(with_time=True):
-    import datetime
-    import time
-    if with_time:
-        return datetime.datetime.fromtimestamp(
-                time.time()).strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        return datetime.datetime.fromtimestamp(
-                time.time()).strftime("%Y-%m-%d")
-
-
 class SDRAMTestSoC(SoCSDRAM):
     csr_map = {
         "ddrphy":    20,
@@ -362,7 +351,7 @@ class SDRAMTestSoC(SoCSDRAM):
             csr_data_width=8 if with_cpu else 32,
             l2_size=128,
             with_uart=with_cpu, uart_stub=False,
-            ident="Sayma AMC SDRAM Test Design " + _build_version(),
+            ident="Sayma AMC SDRAM Test Design ", ident_version=True,
             with_timer=with_cpu
         )
         self.submodules.crg = _CRG(platform)
@@ -482,7 +471,7 @@ class JESDTestSoC(SoCCore):
             cpu_type=None,
             csr_data_width=32,
             with_uart=False,
-            ident="Sayma AMC JESD Test Design " + _build_version(),
+            ident="Sayma AMC JESD Test Design ", ident_version=True,
             with_timer=False
         )
         self.submodules.crg = _CRG(platform)
@@ -582,7 +571,7 @@ class DRTIOTestSoC(SoCCore):
             cpu_type=None,
             csr_data_width=32,
             with_uart=False,
-            ident="Sayma AMC DRTIO Test Design " + _build_version(),
+            ident="Sayma AMC DRTIO Test Design ", ident_version=True,
             with_timer=False
         )
         self.submodules.crg = _CRG(platform)
@@ -656,10 +645,46 @@ class DRTIOTestSoC(SoCCore):
         pass
 
 
+class SERWBTest(Module, AutoCSR):
+    def __init__(self, bus):
+        self.do_write = CSR()
+        self.do_read = CSR()
+
+        # # #
+
+        self.submodules.fsm = fsm = FSM(reset_state="IDLE")
+        fsm.act("IDLE",
+            If(self.do_write.re,
+                NextState("WRITE")
+            ).Elif(self.do_read.re,
+                NextState("READ")
+            )
+        )
+        fsm.act("WRITE",
+            bus.stb.eq(1),
+            bus.cyc.eq(1),
+            bus.we.eq(1),
+            bus.adr.eq(0x12345678),
+            bus.dat_w.eq(0xdeadbeef),
+            If(bus.ack,
+                NextState("IDLE")
+            )
+        )
+        fsm.act("READ",
+            bus.stb.eq(1),
+            bus.cyc.eq(1),
+            bus.adr.eq(0x89abcdef),
+            If(bus.ack,
+                NextState("IDLE")
+            )
+        )
+
+
 class SERWBTestSoC(SoCCore):
     csr_map = {
-        "serwb_phy": 20,
-        "analyzer":  30
+        "serwb_phy":   20,
+        "serwb_test":  21,
+        "analyzer":    30
     }
     csr_map.update(SoCCore.csr_map)
 
@@ -668,13 +693,13 @@ class SERWBTestSoC(SoCCore):
     }
     mem_map.update(SoCCore.mem_map)
 
-    def __init__(self, platform, with_analyzer=True):
+    def __init__(self, platform, with_serwb_test=False):
         clk_freq = int(125e6)
         SoCCore.__init__(self, platform, clk_freq,
             cpu_type=None,
             csr_data_width=32,
             with_uart=False,
-            ident="Sayma AMC / AMC <--> RTM SERWB Link Test Design " + _build_version(),
+            ident="Sayma AMC / AMC <--> RTM SERWB Link Test Design ", ident_version=True,
             with_timer=False
         )
         self.submodules.crg = _CRG(platform)
@@ -683,8 +708,6 @@ class SERWBTestSoC(SoCCore):
         self.add_cpu_or_bridge(UARTWishboneBridge(platform.request("serial"),
                                                   clk_freq, baudrate=115200))
         self.add_wb_master(self.cpu_or_bridge.wishbone)
-
-        self.crg.cd_sys.clk.attr.add("keep")
 
         # amc <--> rtm usr_uart / aux_uart redirection
         aux_uart_pads = platform.request("serial", 1)
@@ -698,68 +721,13 @@ class SERWBTestSoC(SoCCore):
         self.submodules.serwb_phy = serwb_phy
 
         # wishbone slave
-        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=True)
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=False)
         self.submodules += serwb_core
-        self.register_mem("serwb", self.mem_map["serwb"], serwb_core.etherbone.wishbone.bus, 8192)
-
-        # analyzer
-        if with_analyzer:
-            wishbone_access = Signal()
-            self.comb += wishbone_access.eq(serwb_core.etherbone.wishbone.bus.stb &
-                                            serwb_core.etherbone.wishbone.bus.cyc)
-            init_group = [
-                wishbone_access,
-                serwb_phy.init.ready,
-                serwb_phy.init.error,
-                serwb_phy.init.delay_min,
-                serwb_phy.init.delay_max,
-                serwb_phy.init.delay,
-                serwb_phy.init.bitslip
-            ]
-            serdes_group = [
-                wishbone_access,
-                serwb_phy.serdes.encoder.k[0],
-                serwb_phy.serdes.encoder.d[0],
-                serwb_phy.serdes.encoder.k[1],
-                serwb_phy.serdes.encoder.d[1],
-                serwb_phy.serdes.encoder.k[2],
-                serwb_phy.serdes.encoder.d[2],
-                serwb_phy.serdes.encoder.k[3],
-                serwb_phy.serdes.encoder.d[3],
-
-                serwb_phy.serdes.decoders[0].d,
-                serwb_phy.serdes.decoders[0].k,
-                serwb_phy.serdes.decoders[1].d,
-                serwb_phy.serdes.decoders[1].k,
-                serwb_phy.serdes.decoders[2].d,
-                serwb_phy.serdes.decoders[2].k,
-                serwb_phy.serdes.decoders[3].d,
-                serwb_phy.serdes.decoders[3].k,
-            ]
-            etherbone_source_group = [
-                wishbone_access,
-                serwb_core.etherbone.wishbone.source
-            ]
-            etherbone_sink_group = [
-                wishbone_access,
-                serwb_core.etherbone.wishbone.sink
-            ]
-            wishbone_group = [
-                wishbone_access,
-                serwb_core.etherbone.wishbone.bus
-            ]
-            analyzer_signals = {
-                0 : init_group,
-                1 : serdes_group,
-                2 : etherbone_source_group,
-                3 : etherbone_sink_group,
-                4 : wishbone_group
-            }
-            self.submodules.analyzer = LiteScopeAnalyzer(analyzer_signals, 128, cd="sys")
-
-    def do_exit(self, vns):
-        if hasattr(self, "analyzer"):
-            self.analyzer.export_csv(vns, "test/sayma_amc/analyzer.csv")
+        if with_serwb_test:
+            # serwb test
+            self.submodules.serwb_test = SERWBTest(serwb_core.etherbone.wishbone.bus)
+        else:
+            self.register_mem("serwb", self.mem_map["serwb"], serwb_core.etherbone.wishbone.bus, 8192)
 
 
 class FullTestSoC(SoCSDRAM):
@@ -785,7 +753,7 @@ class FullTestSoC(SoCSDRAM):
             csr_data_width=8,
             l2_size=128,
             with_uart=True,
-            ident="Sayma Full Test Design " + _build_version(),
+            ident="Sayma Full Test Design ", ident_version=True,
             with_timer=True
         )
         self.submodules.crg = _CRG(platform)
@@ -818,7 +786,7 @@ class FullTestSoC(SoCSDRAM):
         self.submodules.serwb_phy = serwb_phy
 
         # wishbone slave
-        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=True)
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=False)
         self.submodules += serwb_core
         self.register_mem("serwb", self.mem_map["serwb"], serwb_core.etherbone.wishbone.bus, 8192)
 

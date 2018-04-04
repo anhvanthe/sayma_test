@@ -150,17 +150,6 @@ class _CRG(Module):
         self.specials += Instance("IDELAYCTRL", i_REFCLK=ClockSignal("clk200"), i_RST=ic_reset)
 
 
-def _build_version(with_time=True):
-    import datetime
-    import time
-    if with_time:
-        return datetime.datetime.fromtimestamp(
-                time.time()).strftime("%Y-%m-%d %H:%M:%S")
-    else:
-        return datetime.datetime.fromtimestamp(
-                time.time()).strftime("%Y-%m-%d")
-
-
 class JESDTestSoC(SoCCore):
     csr_map = {
         "hmc_spi":          20,
@@ -185,7 +174,7 @@ class JESDTestSoC(SoCCore):
             cpu_type=None,
             csr_data_width=32, csr_address_width=15,
             with_uart=False,
-            ident="Sayma RTM JESD Test Design " + _build_version(),
+            ident="Sayma RTM JESD Test Design ", ident_version=True,
             with_timer=False
         )
         self.submodules.crg = _CRG(platform)
@@ -293,7 +282,7 @@ class SERWBTestSoC(SoCCore):
             cpu_type=None,
             csr_data_width=32,
             with_uart=False,
-            ident="Sayma RTM / AMC <--> RTM SERWB Link Test Design " + _build_version(),
+            ident="Sayma RTM / AMC <--> RTM SERWB Link Test Design ", ident_version=True,
             with_timer=False
         )
         self.submodules.crg = _CRG(platform)
@@ -305,72 +294,33 @@ class SERWBTestSoC(SoCCore):
 
         # amc rtm link
         serwb_phy = SERWBPHY(platform.device, platform.request("serwb"), mode="slave")
+        platform.add_period_constraint(platform.lookup_request("serwb").clk_p, 10.)
         self.submodules.serwb_phy = serwb_phy
         self.comb += self.crg.serwb_refclk.eq(serwb_phy.serdes.refclk)
 
         # wishbone master
-        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master", with_scrambling=True)
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master", with_scrambling=False)
         self.submodules += serwb_core
         self.add_wb_master(serwb_core.etherbone.wishbone.bus)
 
         # wishbone test memory
         self.submodules.serwb_sram = wishbone.SRAM(8192, init=[i for i in range(8192//4)])
         self.register_mem("serwb_sram", self.mem_map["serwb"], self.serwb_sram.bus, 8192)
-
-        # analyzer
+    
         if with_analyzer:
-            wishbone_access = Signal()
-            self.comb += wishbone_access.eq((serwb_phy.serdes.decoders[0].d == 0xa5) |
-                                            (serwb_phy.serdes.decoders[1].d == 0x5a))
-            init_group = [
-                wishbone_access,
-                serwb_phy.init.ready,
-                serwb_phy.init.error,
-                serwb_phy.init.delay_min,
-                serwb_phy.init.delay_max,
-                serwb_phy.init.delay,
-                serwb_phy.init.bitslip
+            activity = Signal()
+            self.comb += activity.eq(serwb_phy.serdes.decoders[0].d != 0)
+            analyzer_signals = [
+                activity,
+                serwb_core.etherbone.wishbone.bus,
+                serwb_phy.serdes.rx_ce,
+                serwb_phy.serdes.rx_k,
+                serwb_phy.serdes.rx_d,
+                serwb_phy.serdes.tx_ce,
+                serwb_phy.serdes.tx_k,
+                serwb_phy.serdes.tx_d
             ]
-            serdes_group = [
-                wishbone_access,
-                serwb_phy.serdes.encoder.k[0],
-                serwb_phy.serdes.encoder.d[0],
-                serwb_phy.serdes.encoder.k[1],
-                serwb_phy.serdes.encoder.d[1],
-                serwb_phy.serdes.encoder.k[2],
-                serwb_phy.serdes.encoder.d[2],
-                serwb_phy.serdes.encoder.k[3],
-                serwb_phy.serdes.encoder.d[3],
-
-                serwb_phy.serdes.decoders[0].d,
-                serwb_phy.serdes.decoders[0].k,
-                serwb_phy.serdes.decoders[1].d,
-                serwb_phy.serdes.decoders[1].k,
-                serwb_phy.serdes.decoders[2].d,
-                serwb_phy.serdes.decoders[2].k,
-                serwb_phy.serdes.decoders[3].d,
-                serwb_phy.serdes.decoders[3].k,
-            ]
-            etherbone_source_group = [
-                wishbone_access,
-                serwb_core.etherbone.wishbone.source
-            ]
-            etherbone_sink_group = [
-                wishbone_access,
-                serwb_core.etherbone.wishbone.sink
-            ]
-            wishbone_group = [
-                wishbone_access,
-                serwb_core.etherbone.wishbone.bus
-            ]
-            analyzer_signals = {
-                0 : init_group,
-                1 : serdes_group,
-                2 : etherbone_source_group,
-                3 : etherbone_sink_group,
-                4 : wishbone_group
-            }
-            self.submodules.analyzer = LiteScopeAnalyzer(analyzer_signals, 128, cd="sys")
+            self.submodules.analyzer = LiteScopeAnalyzer(analyzer_signals, 256)
 
     def do_exit(self, vns):
         if hasattr(self, "analyzer"):

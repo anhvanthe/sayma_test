@@ -39,44 +39,23 @@ def check_pattern(length, debug=False):
         errors += error
     return errors
 
-
-groups = {
-    "init":             0,
-    "serdes":           1,
-    "etherbone_source": 2,
-    "etherbone_sink":   3,
-    "wishbone":         4
-}
-
-def analyzer():
-    analyzer = LiteScopeAnalyzerDriver(wb_amc.regs, "analyzer", config_csv="../sayma_amc/analyzer.csv", debug=True)
-    analyzer.configure_group(groups["wishbone"])
-    analyzer.configure_trigger(cond={"wishbone_access" : 1})
-    analyzer.run(offset=32, length=128)
-
-    write_pattern(32)
-    errors = check_pattern(32, debug=True)
-    print("errors: {:d}".format(errors))
-
-    analyzer.wait_done()
-    analyzer.upload()
-    analyzer.save("dump.vcd")
-
-
 if len(sys.argv) < 2:
-    print("missing test (init, wishbone, analyzer)")
+    print("missing test (init, wishbone, analyzer_rtm)")
     wb_amc.close()
     exit()
 
 if sys.argv[1] == "init":
     wb_amc.regs.serwb_phy_control_reset.write(1)
-    timeout = 20
-    while not (wb_amc.regs.serwb_phy_control_ready.read() & 0x1 |
-               wb_amc.regs.serwb_phy_control_error.read() & 0x1 |
-               timeout > 0):
+    timeout = 100
+    print("SERWB init", end="")
+    while (wb_amc.regs.serwb_phy_control_ready.read() == 0 and
+           wb_amc.regs.serwb_phy_control_error.read() == 0 and
+           timeout > 0):
         time.sleep(0.1)
+        print(".", end="")
+        sys.stdout.flush()
         timeout -= 1
-    time.sleep(2)
+    print("")
     print("AMC configuration")
     print("-----------------")
     print("delay_min_found: {:d}".format(wb_amc.regs.serwb_phy_control_delay_min_found.read()))
@@ -98,6 +77,7 @@ if sys.argv[1] == "init":
     print("bitslip: {:d}".format(wb_rtm.regs.serwb_phy_control_bitslip.read()))
     print("ready: {:d}".format(wb_rtm.regs.serwb_phy_control_ready.read()))
     print("error: {:d}".format(wb_rtm.regs.serwb_phy_control_error.read()))
+
 elif sys.argv[1] == "wishbone":
     write_pattern(1024)
     errors = check_pattern(1024, debug=True)
@@ -105,8 +85,18 @@ elif sys.argv[1] == "wishbone":
 elif sys.argv[1] == "dump":
     for i in range(32):
         print("{:08x}".format(wb_amc.read(wb_amc.mems.serwb.base + 4*i)))
-elif sys.argv[1] == "analyzer":
-    analyzer()
+elif sys.argv[1] == "analyzer_rtm":
+    analyzer = LiteScopeAnalyzerDriver(wb_rtm.regs, "analyzer", config_csv="../sayma_rtm/analyzer.csv", debug=True)
+    analyzer.configure_trigger(cond={"soc_activity" : 1})
+    analyzer.run(offset=32, length=128)
+
+    time.sleep(1)
+    #wb_amc.regs.serwb_test_do_write.write(1)
+    wb_amc.regs.serwb_test_do_read.write(1)
+
+    analyzer.wait_done()
+    analyzer.upload()
+    analyzer.save("dump.vcd")
 else:
     raise ValueError
 
