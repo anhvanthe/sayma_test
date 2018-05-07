@@ -299,7 +299,7 @@ class SERWBTestSoC(SoCCore):
         self.comb += self.crg.serwb_refclk.eq(serwb_phy.serdes.refclk)
 
         # wishbone master
-        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master", with_scrambling=False)
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master")
         self.submodules += serwb_core
         self.add_wb_master(serwb_core.etherbone.wishbone.bus)
 

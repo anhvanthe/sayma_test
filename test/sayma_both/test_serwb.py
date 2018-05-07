@@ -40,8 +40,8 @@ def check_pattern(length, debug=False):
     return errors
 
 if len(sys.argv) < 2:
-    print("missing test (init, wishbone, analyzer_rtm)")
-    wb_amc.close()
+    print("missing test (init, prbs, scrambling, wishbone, analyzer)")
+    wb.close()
     exit()
 
 if sys.argv[1] == "init":
@@ -78,9 +78,34 @@ if sys.argv[1] == "init":
     print("ready: {:d}".format(wb_rtm.regs.serwb_phy_control_ready.read()))
     print("error: {:d}".format(wb_rtm.regs.serwb_phy_control_error.read()))
 
+elif sys.argv[1] == "prbs":
+    print("PRBS Slave to Master test:")
+    wb_amc.regs.serwb_phy_control_prbs_cycles.write(int(1e6))
+    wb_amc.regs.serwb_phy_control_prbs_start.write(1)
+    #check_pattern(1, debug=False) # error injecton
+    time.sleep(1)
+    print("errors : %d" %wb_amc.regs.serwb_phy_control_prbs_errors.read())
+
+    print("PRBS Master to Slave test:")
+    wb_rtm.regs.serwb_phy_control_prbs_cycles.write(int(1e6))
+    wb_rtm.regs.serwb_phy_control_prbs_start.write(1)
+    #check_pattern(1, debug=False) # error injecton
+    time.sleep(1)
+    print("errors : %d" %wb_rtm.regs.serwb_phy_control_prbs_errors.read())
+
+elif sys.argv[1] == "scrambling":
+    if wb_amc.regs.serwb_phy_control_scrambling_enable.read():
+        print("Disabling scrambling")
+        wb_rtm.regs.serwb_phy_control_scrambling_enable.write(0)
+        wb_amc.regs.serwb_phy_control_scrambling_enable.write(0)
+    else:
+        print("Enabling scrambling")
+        wb_rtm.regs.serwb_phy_control_scrambling_enable.write(1)
+        wb_amc.regs.serwb_phy_control_scrambling_enable.write(1)
+
 elif sys.argv[1] == "wishbone":
-    write_pattern(1024)
-    errors = check_pattern(1024, debug=True)
+    write_pattern(128)
+    errors = check_pattern(128, debug=True)
     print("errors: {:d}".format(errors))
 elif sys.argv[1] == "dump":
     for i in range(32):

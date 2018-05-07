@@ -721,7 +721,7 @@ class SERWBTestSoC(SoCCore):
         self.submodules.serwb_phy = serwb_phy
 
         # wishbone slave
-        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave", with_scrambling=False)
+        serwb_core = SERWBCore(serwb_phy, clk_freq, mode="slave")
         self.submodules += serwb_core
         if with_serwb_test:
             # serwb test
