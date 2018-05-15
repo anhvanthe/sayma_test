@@ -32,7 +32,7 @@ from litejesd204b.core import LiteJESD204BCoreTXControl
 
 from drtio.gth_ultrascale import *
 
-from liteiclink.serwb.phy import SERWBPHY
+from liteiclink.serwb.genphy import SERWBPHY
 from liteiclink.serwb.core import SERWBCore
 
 from litescope import LiteScopeAnalyzer

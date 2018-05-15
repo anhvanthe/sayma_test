@@ -17,7 +17,7 @@ from litex.soc.cores.gpio import GPIOOut
 from litex.soc.interconnect import stream
 from litex.soc.interconnect import wishbone
 
-from liteiclink.serwb.phy import SERWBPHY
+from liteiclink.serwb.genphy import SERWBPHY
 from liteiclink.serwb.core import SERWBCore
 
 from litescope import LiteScopeAnalyzer
@@ -107,36 +107,37 @@ class _CRG(Module):
         self.clock_domains.cd_clk200 = ClockDomain()
 
         self.serwb_refclk = Signal()
+        self.serwb_reset = Signal()
+
+        serwb_refclk_bufr = Signal()
+        serwb_refclk_bufg = Signal()
+        self.specials += Instance("BUFR", i_I=self.serwb_refclk, o_O=serwb_refclk_bufr)
+        self.specials += Instance("BUFG", i_I=serwb_refclk_bufr, o_O=serwb_refclk_bufg)   
 
         pll_locked = Signal()
         pll_fb = Signal()
-        pll_sys = Signal()
         pll_sys4x = Signal()
         pll_clk200 = Signal()
         self.specials += [
-            Instance("PLLE2_BASE",
-                     p_STARTUP_WAIT="FALSE", o_LOCKED=pll_locked,
+            Instance("MMCME2_BASE",
+                p_STARTUP_WAIT="FALSE", o_LOCKED=pll_locked,
 
-                     # VCO @ 1GHz
-                     p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=10.0,
-                     p_CLKFBOUT_MULT=10, p_DIVCLK_DIVIDE=1,
-                     i_CLKIN1=self.serwb_refclk, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
+                # VCO @ 1GHz
+                p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=8.0,
+                p_CLKFBOUT_MULT_F=8, p_DIVCLK_DIVIDE=1,
+                i_CLKIN1=serwb_refclk_bufg, i_CLKFBIN=pll_fb, o_CLKFBOUT=pll_fb,
 
-                     # 125MHz
-                     p_CLKOUT0_DIVIDE=8, p_CLKOUT0_PHASE=0.0, o_CLKOUT0=pll_sys,
+                # 500MHz
+                p_CLKOUT0_DIVIDE_F=2, p_CLKOUT0_PHASE=0.0, o_CLKOUT0=pll_sys4x,
 
-                     # 500MHz
-                     p_CLKOUT1_DIVIDE=2, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_sys4x,
-
-                     # 200MHz
-                     p_CLKOUT2_DIVIDE=5, p_CLKOUT2_PHASE=0.0, o_CLKOUT2=pll_clk200
+                # 200MHz
+                p_CLKOUT1_DIVIDE=5, p_CLKOUT1_PHASE=0.0, o_CLKOUT1=pll_clk200
             ),
-            Instance("BUFG", i_I=pll_sys, o_O=self.cd_sys.clk),
-            Instance("BUFG", i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
+            Instance("BUFR", p_BUFR_DIVIDE="4", i_I=pll_sys4x, o_O=self.cd_sys.clk),
+            Instance("BUFIO", i_I=pll_sys4x, o_O=self.cd_sys4x.clk),
             Instance("BUFG", i_I=pll_clk200, o_O=self.cd_clk200.clk),
-            AsyncResetSynchronizer(self.cd_sys, ~pll_locked),
-            AsyncResetSynchronizer(self.cd_sys4x, ~pll_locked),
-            AsyncResetSynchronizer(self.cd_clk200, ~pll_locked)
+            AsyncResetSynchronizer(self.cd_sys, ~pll_locked | self.serwb_reset),
+            AsyncResetSynchronizer(self.cd_clk200, ~pll_locked | self.serwb_reset)
         ]
 
         reset_counter = Signal(4, reset=15)
