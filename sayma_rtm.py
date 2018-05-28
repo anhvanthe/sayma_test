@@ -297,7 +297,7 @@ class SERWBTestSoC(SoCCore):
         serwb_phy = SERWBPHY(platform.device, platform.request("serwb"), mode="slave")
         platform.add_period_constraint(platform.lookup_request("serwb").clk_p, 10.)
         self.submodules.serwb_phy = serwb_phy
-        self.comb += self.crg.serwb_refclk.eq(serwb_phy.serdes.refclk)
+        self.comb += self.crg.serwb_refclk.eq(serwb_phy.serdes.clocking.refclk)
 
         # wishbone master
         serwb_core = SERWBCore(serwb_phy, clk_freq, mode="master")
