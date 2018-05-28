@@ -58,7 +58,7 @@ if sys.argv[1] == "init":
     print("")
     print("AMC configuration")
     print("-----------------")
-    if hasattr(wb_amc.regs, "serwb_phy_control_delay_min_founds"):
+    if hasattr(wb_amc.regs, "serwb_phy_control_delay_min_found"):
     	print("delay_min_found: {:d}".format(wb_amc.regs.serwb_phy_control_delay_min_found.read()))
     	print("delay_min: {:d}".format(wb_amc.regs.serwb_phy_control_delay_min.read()))
     	print("delay_max_found: {:d}".format(wb_amc.regs.serwb_phy_control_delay_max_found.read()))
